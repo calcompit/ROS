@@ -38,21 +38,36 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - Allow all Netlify domains
 app.use(cors({
-  origin: [
-    'http://localhost:5173', 
-    'http://localhost:8081', 
-    'http://localhost:8080', 
-    'http://localhost:3000',
-    'https://localhost:5173',
-    'https://localhost:8081',
-    'https://localhost:8080',
-    'https://localhost:3000',
-    'https://*.netlify.app',  // Allow all Netlify subdomains
-    'https://netlify.app',    // Allow netlify.app domain
-    'https://peaceful-tapioca-c9ada4.netlify.app'  // Specific Netlify URL
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+      return callback(null, true);
+    }
+    
+    // Allow all netlify.app domains
+    if (origin.endsWith('.netlify.app') || origin === 'https://netlify.app') {
+      return callback(null, true);
+    }
+    
+    // Allow specific domains if needed
+    const allowedDomains = [
+      'https://peaceful-tapioca-c9ada4.netlify.app',
+      'https://calcompit-ros.netlify.app'
+    ];
+    
+    if (allowedDomains.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Log blocked origins for debugging
+    console.log(`🚫 Blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With']
@@ -109,8 +124,8 @@ const startServer = async () => {
     }
 
     // Get local IP address
-    const getLocalIP = () => {
-      const { networkInterfaces } = require('os');
+    const getLocalIP = async () => {
+      const { networkInterfaces } = await import('os');
       const nets = networkInterfaces();
       for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
@@ -122,7 +137,7 @@ const startServer = async () => {
       return 'localhost';
     };
 
-    const localIP = getLocalIP();
+    const localIP = await getLocalIP();
 
     // Create self-signed certificate for development
     try {
@@ -149,8 +164,8 @@ const startServer = async () => {
         fs.mkdirSync(sslDir, { recursive: true });
       }
 
-      // Generate self-signed certificate using Node.js
-      const { execSync } = require('child_process');
+             // Generate self-signed certificate using Node.js
+       const { execSync } = await import('child_process');
       try {
         execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=localhost"`, { stdio: 'inherit' });
         
