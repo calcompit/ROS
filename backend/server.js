@@ -55,7 +55,7 @@ app.use(cors({
     }
     
     // Allow all pages.dev domains (Cloudflare Pages)
-    if (origin.endsWith('.pages.dev')) {
+    if (origin.endsWith('.pages.dev') || origin.includes('pages.dev')) {
       return callback(null, true);
     }
     
@@ -73,6 +73,7 @@ app.use(cors({
     const allowedDomains = [
       'https://peaceful-tapioca-c9ada4.netlify.app',
       'https://calcompit-ros.netlify.app',
+      'https://ros-4hr.pages.dev',
       'https://ros-4hr.pages.dev'
     ];
     

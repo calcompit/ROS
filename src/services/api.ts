@@ -84,19 +84,19 @@ export const repairOrdersApi = {
     }
     
     const queryString = searchParams.toString();
-    const endpoint = `/repair-orders${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/tickets${queryString ? `?${queryString}` : ''}`;
     
     return apiRequest<RepairOrder[]>(endpoint);
   },
 
   // Get specific repair order
   getById: async (orderNo: string | number): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>(`/repair-orders/${orderNo}`);
+    return apiRequest<RepairOrder>(`/tickets/${orderNo}`);
   },
 
   // Create new repair order
   create: async (order: Omit<RepairOrder, 'order_no' | 'insert_date' | 'last_date'>): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>('/repair-orders', {
+    return apiRequest<RepairOrder>('/tickets', {
       method: 'POST',
       body: JSON.stringify(order),
     });
@@ -104,7 +104,7 @@ export const repairOrdersApi = {
 
   // Update repair order
   update: async (orderNo: string | number, updates: Partial<RepairOrder>): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>(`/repair-orders/${orderNo}`, {
+    return apiRequest<RepairOrder>(`/tickets/${orderNo}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
@@ -112,14 +112,14 @@ export const repairOrdersApi = {
 
   // Delete repair order
   delete: async (orderNo: string | number): Promise<ApiResponse<void>> => {
-    return apiRequest<void>(`/repair-orders/${orderNo}`, {
+    return apiRequest<void>(`/tickets/${orderNo}`, {
       method: 'DELETE',
     });
   },
 
   // Get dashboard statistics
   getStats: async (): Promise<ApiResponse<any>> => {
-    return apiRequest<any>('/repair-orders/stats/dashboard');
+    return apiRequest<any>('/tickets/stats/dashboard');
   },
 };
 

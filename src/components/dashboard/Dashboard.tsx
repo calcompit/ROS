@@ -146,8 +146,8 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
     // Add notification for new ticket
     addNotification({
       type: 'success',
-      title: 'Repair Order Created',
-      message: `Your repair order ${newTicket.order_no} has been created and is pending review.`,
+              title: 'Equipment Order Created',
+        message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
       ticketId: newTicket.order_no
     });
   };

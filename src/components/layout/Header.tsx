@@ -45,11 +45,11 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick }) => {
         <div className="flex items-center gap-4">
           <MobileNav />
           <div className="hidden lg:block">
-            <h1 className="text-2xl font-bold text-foreground">Repair Order System</h1>
+            <h1 className="text-2xl font-bold text-foreground">TechFix Pro</h1>
             <p className="text-sm text-muted-foreground">Equipment Management Dashboard</p>
           </div>
           <div className="lg:hidden">
-            <h1 className="text-xl font-bold text-foreground">ROS</h1>
+            <h1 className="text-xl font-bold text-foreground">TechFix Pro</h1>
           </div>
         </div>
 
