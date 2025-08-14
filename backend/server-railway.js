@@ -5,33 +5,24 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { testConnection } from './config/database.js';
 
-// Import routes
-import repairOrderRoutes from './routes/repairOrders.js';
-import authRoutes from './routes/auth.js';
-import notificationRoutes from './routes/notifications.js';
-import subjectRoutes from './routes/subjects.js';
-import departmentRoutes from './routes/departments.js';
-
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
 
 // Security middleware
 app.use(helmet());
-
-// Rate limiting - More lenient for development
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs (increased for development)
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 app.use(limiter);
 
-// CORS configuration - Allow all Netlify domains
+// CORS configuration for Railway
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -47,10 +38,21 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // Allow all pages.dev domains (Cloudflare Pages)
+    if (origin.endsWith('.pages.dev')) {
+      return callback(null, true);
+    }
+    
+    // Allow Railway domains
+    if (origin.includes('.railway.app')) {
+      return callback(null, true);
+    }
+    
     // Allow specific domains if needed
     const allowedDomains = [
       'https://peaceful-tapioca-c9ada4.netlify.app',
-      'https://calcompit-ros.netlify.app'
+      'https://calcompit-ros.netlify.app',
+      'https://ros-4hr.pages.dev'
     ];
     
     if (allowedDomains.includes(origin)) {
@@ -68,52 +70,61 @@ app.use(cors({
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.status(200).json({ 
     status: 'OK', 
-    message: 'Repair Order API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// API routes
-app.use('/api/repair-orders', repairOrderRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/subjects', subjectRoutes);
-app.use('/api/departments', departmentRoutes);
+// Import routes
+import authRoutes from './routes/auth.js';
+import ticketsRoutes from './routes/tickets.js';
+import subjectsRoutes from './routes/subjects.js';
+import departmentsRoutes from './routes/departments.js';
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Global error:', error);
-  res.status(500).json({
-    success: false,
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tickets', ticketsRoutes);
+app.use('/api/subjects', subjectsRoutes);
+app.use('/api/departments', departmentsRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    success: false, 
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found'
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found' 
   });
 });
+
+// Database connection status
+let dbConnected = false;
 
 // Start server
 const startServer = async () => {
   try {
-    // Test database connection (non-blocking)
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      console.warn('⚠️ Database connection failed - running in demo mode');
-      console.warn('⚠️ API will return sample data instead of real database');
-    } else {
+    // Test database connection
+    const dbTest = await testConnection();
+    dbConnected = dbTest.success;
+    
+    if (dbConnected) {
       console.log('✅ Database connected successfully');
+    } else {
+      console.log('⚠️ Database connection failed - running in demo mode');
     }
 
     // Start HTTP server (Railway handles HTTPS)

@@ -1,8 +1,8 @@
 {
-  "name": "fixit-repair-order-backend",
+  "name": "techfix-pro-backend",
   "version": "1.0.0",
-  "description": "Backend API for Repair Order Management System",
-  "main": "server.js",
+  "description": "TechFix Pro Backend API",
+  "main": "server-railway.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
