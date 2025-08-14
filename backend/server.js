@@ -96,10 +96,10 @@ const startServer = async () => {
       console.log('✅ Database connected successfully');
     }
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
-      console.log(`🌐 API base URL: http://localhost:${PORT}/api`);
+      console.log(`🌐 API base URL: http://10.13.15.127:${PORT}/api`);
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
       if (!dbConnected) {
         console.log(`⚠️ Demo mode: Update .env with correct database settings`);
