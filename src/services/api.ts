@@ -1,5 +1,5 @@
 // API Service for connecting to backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://7s-macbook-pro.tail878f89.ts.net:3001/api';
 
 export default API_BASE_URL;
 
@@ -84,19 +84,19 @@ export const repairOrdersApi = {
     }
     
     const queryString = searchParams.toString();
-    const endpoint = `/tickets${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/repair-orders${queryString ? `?${queryString}` : ''}`;
     
     return apiRequest<RepairOrder[]>(endpoint);
   },
 
   // Get specific repair order
   getById: async (orderNo: string | number): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>(`/tickets/${orderNo}`);
+    return apiRequest<RepairOrder>(`/repair-orders/${orderNo}`);
   },
 
   // Create new repair order
   create: async (order: Omit<RepairOrder, 'order_no' | 'insert_date' | 'last_date'>): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>('/tickets', {
+    return apiRequest<RepairOrder>('/repair-orders', {
       method: 'POST',
       body: JSON.stringify(order),
     });
