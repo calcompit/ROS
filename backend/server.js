@@ -108,21 +108,75 @@ const startServer = async () => {
       console.log('✅ Database connected successfully');
     }
 
-    // Create self-signed certificate for development
-    const options = {
-      key: fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
+    // Get local IP address
+    const getLocalIP = () => {
+      const { networkInterfaces } = require('os');
+      const nets = networkInterfaces();
+      for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+          if (net.family === 'IPv4' && !net.internal) {
+            return net.address;
+          }
+        }
+      }
+      return 'localhost';
     };
 
-    https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 HTTPS Server running on port ${PORT}`);
-      console.log(`📍 Health check: https://localhost:${PORT}/health`);
-      console.log(`🌐 API base URL: https://[YOUR_NEW_IP]:${PORT}/api`);
-      console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-      if (!dbConnected) {
-        console.log(`⚠️ Demo mode: Update .env with correct database settings`);
+    const localIP = getLocalIP();
+
+    // Create self-signed certificate for development
+    try {
+      const options = {
+        key: fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
+      };
+
+      https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 HTTPS Server running on port ${PORT}`);
+        console.log(`📍 Health check: https://localhost:${PORT}/health`);
+        console.log(`🌐 API base URL: https://${localIP}:${PORT}/api`);
+        console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+        if (!dbConnected) {
+          console.log(`⚠️ Demo mode: Update .env with correct database settings`);
+        }
+      });
+    } catch (sslError) {
+      console.error('❌ SSL certificate not found. Creating new one...');
+      
+      // Create SSL directory if it doesn't exist
+      const sslDir = path.join(__dirname, 'ssl');
+      if (!fs.existsSync(sslDir)) {
+        fs.mkdirSync(sslDir, { recursive: true });
       }
-    });
+
+      // Generate self-signed certificate using Node.js
+      const { execSync } = require('child_process');
+      try {
+        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=localhost"`, { stdio: 'inherit' });
+        
+        // Retry with new certificate
+        const options = {
+          key: fs.readFileSync(path.join(sslDir, 'key.pem')),
+          cert: fs.readFileSync(path.join(sslDir, 'cert.pem'))
+        };
+
+        https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+          console.log(`🚀 HTTPS Server running on port ${PORT}`);
+          console.log(`📍 Health check: https://localhost:${PORT}/health`);
+          console.log(`🌐 API base URL: https://${localIP}:${PORT}/api`);
+          console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+          if (!dbConnected) {
+            console.log(`⚠️ Demo mode: Update .env with correct database settings`);
+          }
+        });
+      } catch (genError) {
+        console.error('❌ Failed to generate SSL certificate. Please install OpenSSL or use mkcert.');
+        console.error('📝 Manual SSL setup required:');
+        console.error('   1. Install OpenSSL for Windows');
+        console.error('   2. Run: openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=localhost"');
+        process.exit(1);
+      }
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
