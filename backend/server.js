@@ -45,12 +45,17 @@ app.use(cors({
     'http://localhost:8081', 
     'http://localhost:8080', 
     'http://localhost:3000',
+    'https://localhost:5173',
+    'https://localhost:8081',
+    'https://localhost:8080',
+    'https://localhost:3000',
     'https://*.netlify.app',  // Allow all Netlify subdomains
-    'https://netlify.app'     // Allow netlify.app domain
+    'https://netlify.app',    // Allow netlify.app domain
+    'https://peaceful-tapioca-c9ada4.netlify.app'  // Specific Netlify URL
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With']
 }));
 
 // Body parsing middleware
