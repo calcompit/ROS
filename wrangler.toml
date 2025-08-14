@@ -1,7 +1,0 @@
-[build]
-command = "npm run build"
-
-pages_build_output_dir = "dist"
-
-[env.production]
-VITE_API_URL = "https://10.13.15.127:3001/api"
