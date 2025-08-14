@@ -3,7 +3,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { testConnection } from './config/database.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import routes
 import repairOrderRoutes from './routes/repairOrders.js';
@@ -96,10 +103,16 @@ const startServer = async () => {
       console.log('✅ Database connected successfully');
     }
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 Health check: http://localhost:${PORT}/health`);
-      console.log(`🌐 API base URL: http://10.13.15.127:${PORT}/api`);
+    // Create self-signed certificate for development
+    const options = {
+      key: fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
+    };
+
+    https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 HTTPS Server running on port ${PORT}`);
+      console.log(`📍 Health check: https://localhost:${PORT}/health`);
+      console.log(`🌐 API base URL: https://10.13.15.127:${PORT}/api`);
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
       if (!dbConnected) {
         console.log(`⚠️ Demo mode: Update .env with correct database settings`);
