@@ -38,7 +38,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration - Allow all Netlify domains
+// CORS configuration for cloud deployment
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -56,6 +56,16 @@ app.use(cors({
     
     // Allow all pages.dev domains (Cloudflare Pages)
     if (origin.endsWith('.pages.dev')) {
+      return callback(null, true);
+    }
+    
+    // Allow Railway domains
+    if (origin.includes('.railway.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow Render domains
+    if (origin.includes('.onrender.com')) {
       return callback(null, true);
     }
     
