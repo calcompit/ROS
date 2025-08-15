@@ -1,5 +1,5 @@
 // API Service for connecting to backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
 
 export default API_BASE_URL;
 
