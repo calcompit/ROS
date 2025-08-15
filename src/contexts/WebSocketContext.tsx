@@ -30,9 +30,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   useEffect(() => {
     // Get API base URL from environment or use default
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:3001';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://10.51.101.49:3001';
     
-    // Use localhost for development (backend runs on Windows via SSH)
+    // Use Windows IP address for development (backend runs on Windows via SSH)
     const finalApiUrl = apiUrl.replace('/api', '');
     
     const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');

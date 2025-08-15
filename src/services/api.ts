@@ -1,8 +1,8 @@
 // API Service for connecting to backend
 // Try to detect local IP automatically, fallback to environment variable or default
 const getLocalIP = () => {
-  // Use localhost for development (backend runs on Windows via SSH)
-  return import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
+  // Use Windows IP address for development (backend runs on Windows via SSH)
+  return import.meta.env.VITE_API_URL || 'https://10.51.101.49:3001/api';
 };
 
 const API_BASE_URL = getLocalIP();
