@@ -148,7 +148,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
       type: 'success',
               title: 'Equipment Order Created',
         message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
-      ticketId: newTicket.order_no
+      ticketId: String(newTicket.order_no)
     });
   };
 
@@ -171,7 +171,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
         type: updatedTicket.status === 'completed' ? 'success' : 'info',
         title: 'Repair Order Status Updated',
         message: `Your repair order ${updatedTicket.order_no} ${statusMessages[updatedTicket.status]}.`,
-        ticketId: updatedTicket.order_no
+        ticketId: String(updatedTicket.order_no)
       });
     }
   };
@@ -569,6 +569,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                   key={ticket.order_no} 
                   ticket={ticket}
                   onTicketUpdate={handleTicketUpdate}
+                  onTicketDelete={handleTicketDelete}
                   isHighlighted={highlightedTicketId === ticket.order_no}
                 />
               ))}

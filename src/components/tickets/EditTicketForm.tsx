@@ -251,8 +251,8 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         <Button 
           type="button" 
           variant="destructive" 
-          onClick={() => onDelete(ticket.order_no)}
-          disabled={isSubmitting}
+          onClick={() => onDelete && onDelete(ticket.order_no)}
+          disabled={isSubmitting || !onDelete}
           className="flex-1"
         >
           <Trash2 className="h-4 w-4 mr-2" />
