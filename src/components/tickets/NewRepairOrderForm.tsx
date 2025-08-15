@@ -29,7 +29,6 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
     dept: '',
     emp: '',
     deviceType: '',
-    rootcause: '',
     notes: '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
   });
@@ -88,7 +87,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         device_type: formData.deviceType,
         items: '',
         notes: formData.notes,
-        rootcause: formData.rootcause,
+
         action: '',
         emprepair: '',
         status: 'pending',
@@ -122,7 +121,6 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
           dept: '',
           emp: '',
           deviceType: '',
-          rootcause: '',
           notes: '',
           priority: 'medium'
         });
@@ -258,18 +256,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
             </div>
           </div>
 
-                    <div className="space-y-2">
-            <Label htmlFor="rootcause">Root Cause</Label>
-            <Textarea
-              id="rootcause"
-              placeholder="Describe the root cause of the issue..."
-              value={formData.rootcause}
-              onChange={(e) => setFormData(prev => ({ ...prev, rootcause: e.target.value }))}
-              className="bg-muted/30 focus:bg-background transition-colors"
-              rows={3}
-              required
-            />
-          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="notes">Additional Notes</Label>
