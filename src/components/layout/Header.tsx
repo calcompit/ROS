@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:ml-80">
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
         <div className="flex items-center gap-4">
           <MobileNav ticketCount={ticketCount} />

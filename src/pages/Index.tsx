@@ -21,7 +21,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header onNotificationClick={handleNotificationClick} ticketCount={ticketCount} />
-      <main className="max-w-7xl mx-auto">
+      <main className="lg:ml-80 max-w-7xl mx-auto">
         <Dashboard key={dashboardKey} onTicketCountUpdate={handleTicketCountUpdate} />
       </main>
     </div>
