@@ -492,12 +492,82 @@ router.delete('/:orderNo', async (req, res) => {
 // GET /api/repair-orders/stats/dashboard - Get dashboard statistics
 router.get('/stats/dashboard', async (req, res) => {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      // Demo mode - calculate stats from sample data
+      const total = sampleData.length;
+      const pending = sampleData.filter(item => item.status === 'pending').length;
+      const inProgress = sampleData.filter(item => item.status === 'in-progress').length;
+      const completed = sampleData.filter(item => item.status === 'completed').length;
+      const cancelled = sampleData.filter(item => item.status === 'cancelled').length;
+      
+      // Department stats
+      const deptStats = {};
+      sampleData.forEach(item => {
+        deptStats[item.dept] = (deptStats[item.dept] || 0) + 1;
+      });
+      const byDepartment = Object.entries(deptStats).map(([dept, count]) => ({ dept, count }));
+      
+      // Monthly trends (last 6 months)
+      const monthlyData = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = month.toLocaleDateString('en-US', { month: 'short' });
+        const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+        const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+        
+        const count = sampleData.filter(item => {
+          const itemDate = new Date(item.insert_date);
+          return itemDate >= monthStart && itemDate <= monthEnd;
+        }).length;
+        
+        monthlyData.push({ label: monthName, value: count });
+      }
+      
+      // Device type stats
+      const deviceStats = {};
+      sampleData.forEach(item => {
+        const deviceType = item.device_type || 'Unknown';
+        deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
+      });
+      const byDeviceType = Object.entries(deviceStats).map(([device, count]) => ({ device, count }));
+
+      return res.json({
+        success: true,
+        data: {
+          total,
+          pending,
+          inProgress,
+          completed,
+          cancelled,
+          byDepartment,
+          byDeviceType,
+          monthlyTrends: monthlyData,
+          recentOrders: sampleData.slice(0, 10)
+        },
+        demo: true
+      });
+    }
+
+    // Real database queries
     const queries = {
       total: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE',
       pending: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'pending\'',
       inProgress: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'in-progress\'',
-      completed: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'Success\'',
-      byDepartment: 'SELECT dept, COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE GROUP BY dept',
+      completed: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'completed\'',
+      cancelled: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'cancelled\'',
+      byDepartment: 'SELECT dept, COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE GROUP BY dept ORDER BY count DESC',
+      byDeviceType: 'SELECT device_type, COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC',
+      monthlyTrends: `
+        SELECT 
+          FORMAT(insert_date, 'MMM') as month,
+          COUNT(*) as count
+        FROM dbo.TBL_IT_PCMAINTENANCE 
+        WHERE insert_date >= DATEADD(month, -5, GETDATE())
+        GROUP BY FORMAT(insert_date, 'MMM'), MONTH(insert_date)
+        ORDER BY MONTH(insert_date)
+      `,
       recentOrders: 'SELECT TOP 10 * FROM dbo.TBL_IT_PCMAINTENANCE ORDER BY insert_date DESC'
     };
 
@@ -520,7 +590,10 @@ router.get('/stats/dashboard', async (req, res) => {
         pending: results.pending[0]?.count || 0,
         inProgress: results.inProgress[0]?.count || 0,
         completed: results.completed[0]?.count || 0,
+        cancelled: results.cancelled[0]?.count || 0,
         byDepartment: results.byDepartment,
+        byDeviceType: results.byDeviceType,
+        monthlyTrends: results.monthlyTrends,
         recentOrders: results.recentOrders
       }
     });

@@ -125,7 +125,17 @@ export const repairOrdersApi = {
   },
 
   // Get dashboard statistics
-  getStats: async (): Promise<ApiResponse<any>> => {
+  getStats: async (): Promise<ApiResponse<{
+    total: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    cancelled: number;
+    byDepartment: Array<{ dept: string; count: number }>;
+    byDeviceType: Array<{ device_type: string; count: number }>;
+    monthlyTrends: Array<{ month: string; count: number }>;
+    recentOrders: RepairOrder[];
+  }>> => {
     return apiRequest<any>('/repair-orders/stats/dashboard');
   },
 };

@@ -46,6 +46,18 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   const [tickets, setTickets] = useState<RepairOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<{
+    total: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    cancelled: number;
+    byDepartment: Array<{ dept: string; count: number }>;
+    byDeviceType: Array<{ device_type: string; count: number }>;
+    monthlyTrends: Array<{ month: string; count: number }>;
+    recentOrders: RepairOrder[];
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState(() => {
     const today = new Date();
     today.setDate(1); // Set to first day of current month
@@ -55,6 +67,35 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   const { addNotification } = useNotifications();
   const { isConnected: wsConnected } = useWebSocket();
   const { isConnected, isDemoMode, forceRedirectToError } = useDatabase();
+
+  // Fetch dashboard statistics from API
+  const fetchDashboardStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await repairOrdersApi.getStats();
+      
+      if (response.success) {
+        console.log('📊 Dashboard stats received:', response.data);
+        console.log('📊 Status counts:', {
+          total: response.data.total,
+          pending: response.data.pending,
+          inProgress: response.data.inProgress,
+          completed: response.data.completed,
+          cancelled: response.data.cancelled
+        });
+        console.log('📊 Monthly trends:', response.data.monthlyTrends);
+        console.log('📊 Department data:', response.data.byDepartment);
+        console.log('📊 Device type data:', response.data.byDeviceType);
+        setDashboardStats(response.data);
+      } else {
+        console.error('Failed to fetch dashboard stats:', response.message);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   // Fetch tickets from API
   const fetchTickets = async () => {
@@ -88,9 +129,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     }
   };
 
-  // Load tickets on component mount
+  // Load tickets and stats on component mount
   useEffect(() => {
     fetchTickets();
+    fetchDashboardStats();
   }, []);
 
   // Update ticket count when tickets change
@@ -135,17 +177,28 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const filteredTicketsForStats = getFilteredTickets();
   
-  const stats = {
+  // Use dashboard stats if available, otherwise fall back to filtered tickets
+  const stats = dashboardStats ? {
+    total: dashboardStats.total,
+    pending: dashboardStats.pending,
+    inProgress: dashboardStats.inProgress,
+    completed: dashboardStats.completed,
+    cancelled: dashboardStats.cancelled
+  } : {
     total: filteredTicketsForStats.length,
     pending: filteredTicketsForStats.filter(t => t.status === 'pending').length,
     inProgress: filteredTicketsForStats.filter(t => t.status === 'in-progress').length,
-    completed: filteredTicketsForStats.filter(t => t.status === 'completed').length
+    completed: filteredTicketsForStats.filter(t => t.status === 'completed').length,
+    cancelled: filteredTicketsForStats.filter(t => t.status === 'cancelled').length
   };
 
   const handleNewTicket = (newTicket: TicketType) => {
     setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
     setActiveTab('tickets');
     window.location.hash = 'tickets';
+    
+    // Refresh dashboard stats when new ticket is created
+    fetchDashboardStats();
     
     // Add notification for new ticket
     addNotification({
@@ -161,6 +214,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     setTickets(prev => prev.map(ticket => 
       ticket.order_no === updatedTicket.order_no ? updatedTicket : ticket
     ));
+    
+    // Refresh dashboard stats when ticket is updated
+    fetchDashboardStats();
     
     // Add notification for ticket update
     if (oldTicket && oldTicket.status !== updatedTicket.status) {
@@ -185,6 +241,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       const response = await repairOrdersApi.delete(orderNo);
       if (response.success) {
         setTickets(prev => prev.filter(ticket => ticket.order_no !== orderNo));
+        // Refresh dashboard stats when ticket is deleted
+        fetchDashboardStats();
         addNotification({
           type: 'success',
           title: 'Repair Order Deleted',
@@ -372,7 +430,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             >
               <StatsCard
                 title="Total Orders"
-                value={stats.total}
+                value={statsLoading ? '...' : stats.total}
                 description={`${periodFilter === 'daily' ? 'Daily' : 
                             periodFilter === 'monthly' ? 'Monthly' : 'Yearly'} orders`}
                 icon={Ticket}
@@ -386,7 +444,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             >
               <StatsCard
                 title="Pending Review"
-                value={stats.pending}
+                value={statsLoading ? '...' : stats.pending}
                 description="Awaiting technician"
                 icon={Clock}
                 variant="warning"
@@ -399,7 +457,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             >
               <StatsCard
                 title="In Progress"
-                value={stats.inProgress}
+                value={statsLoading ? '...' : stats.inProgress}
                 description="Being worked on"
                 icon={TrendingUp}
                 variant="primary"
@@ -412,7 +470,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             >
               <StatsCard
                 title="Completed"
-                value={stats.completed}
+                value={statsLoading ? '...' : stats.completed}
                 description="Successfully resolved"
                 icon={Calendar}
                 variant="success"
@@ -422,32 +480,88 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           </div>
 
           {/* Charts Section */}
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-            <ChartCard
+          {statsLoading ? (
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+              <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading charts...</p>
+                </div>
+              </div>
+              <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading charts...</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                            <ChartCard
               title="Status Distribution"
-              data={[
-                { label: 'Pending', value: stats.pending, color: 'hsl(45, 93%, 47%)' },
-                { label: 'In Progress', value: stats.inProgress, color: 'hsl(221, 83%, 53%)' },
-                { label: 'Completed', value: stats.completed, color: 'hsl(142, 76%, 36%)' },
-                { label: 'Cancelled', value: stats.cancelled, color: 'hsl(0, 84%, 60%)' }
-              ]}
+              data={(() => {
+                const chartData = [
+                  { label: 'Pending', value: stats.pending, color: 'hsl(45, 93%, 47%)' },
+                  { label: 'In Progress', value: stats.inProgress, color: 'hsl(221, 83%, 53%)' },
+                  { label: 'Completed', value: stats.completed, color: 'hsl(142, 76%, 36%)' },
+                  { label: 'Cancelled', value: stats.cancelled || 0, color: 'hsl(0, 84%, 60%)' }
+                ];
+                console.log('📊 Status Distribution Chart Data:', chartData);
+                return chartData;
+              })()}
               icon={PieChart}
               type="pie"
             />
-            <ChartCard
-              title="Monthly Trends"
-              data={[
-                { label: 'Jan', value: 12 },
-                { label: 'Feb', value: 19 },
-                { label: 'Mar', value: 15 },
-                { label: 'Apr', value: 22 },
-                { label: 'May', value: 18 },
-                { label: 'Jun', value: 25 }
-              ]}
-              icon={BarChart3}
-              type="bar"
-            />
-          </div>
+                <ChartCard
+                  title="Monthly Trends"
+                  data={(() => {
+                    const chartData = (dashboardStats?.monthlyTrends || []).map(item => ({
+                      label: item.month,
+                      value: item.count
+                    })) || [
+                      { label: 'Jan', value: 0 },
+                      { label: 'Feb', value: 0 },
+                      { label: 'Mar', value: 0 },
+                      { label: 'Apr', value: 0 },
+                      { label: 'May', value: 0 },
+                      { label: 'Jun', value: 0 }
+                    ];
+                    console.log('📊 Monthly Trends Chart Data:', chartData);
+                    return chartData;
+                  })()}
+                  icon={BarChart3}
+                  type="bar"
+                />
+              </div>
+              
+              {/* Additional Charts */}
+              {dashboardStats && dashboardStats.byDepartment && dashboardStats.byDeviceType && (
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                  <ChartCard
+                    title="Department Distribution"
+                    data={(dashboardStats?.byDepartment || []).map((dept, index) => ({
+                      label: dept.dept,
+                      value: dept.count,
+                      color: `hsl(${index * 60}, 70%, 60%)`
+                    }))}
+                    icon={Activity}
+                    type="bar"
+                  />
+                  <ChartCard
+                    title="Device Type Distribution"
+                    data={(dashboardStats?.byDeviceType || []).map((device, index) => ({
+                      label: device.device_type,
+                      value: device.count,
+                      color: `hsl(${index * 45 + 180}, 70%, 60%)`
+                    }))}
+                    icon={Activity}
+                    type="pie"
+                  />
+                </div>
+              )}
+            </>
+          )}
 
           {/* All Orders for Period */}
           <div className="space-y-4">
