@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, AlertCircle, Eye, Edit } from 'lucide-react';
+import { Calendar, Clock, User, AlertCircle, Eye, Edit, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -236,19 +236,29 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       </Card>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0">
           {/* Header - Fixed */}
           <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
-            <DialogHeader>
-              <DialogTitle>
-                {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditing 
-                  ? "Update repair order information (Admin access)" 
-                  : `Complete information about repair order for ${ticket.dept}`}
-              </DialogDescription>
-            </DialogHeader>
+            <div className="flex items-start justify-between">
+              <DialogHeader className="flex-1">
+                <DialogTitle>
+                  {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
+                </DialogTitle>
+                <DialogDescription>
+                  {isEditing 
+                    ? "Update repair order information (Admin access)" 
+                    : `Complete information about repair order for ${ticket.dept}`}
+                </DialogDescription>
+              </DialogHeader>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsDetailOpen(false)}
+                className="h-8 w-8 p-0 ml-4"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Body - Scrollable */}
@@ -369,7 +379,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
           </div>
 
           {/* Footer - Fixed */}
-          <div className="sticky bottom-0 z-10 bg-background border-t px-6 py-4">
+          <div className="mt-auto bg-background border-t px-6 py-4">
             <div className="flex flex-col sm:flex-row gap-2">
               <Button variant="outline" className="flex-1">
                 Download Report
