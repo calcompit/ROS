@@ -30,8 +30,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   useEffect(() => {
     // Get API base URL from environment or use default
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:3001';
-    const wsUrl = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://10.51.101.49:3001';
+    
+    // Fallback to localhost for development
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const finalApiUrl = isLocalhost ? 'https://localhost:3001' : apiUrl;
+    
+    const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
     
     console.log('🔌 Connecting to WebSocket:', wsUrl);
     
