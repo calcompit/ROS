@@ -46,6 +46,11 @@ const apiRequest = async <T>(
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      // Ignore SSL certificate errors in development
+      ...(import.meta.env.DEV && {
+        mode: 'cors',
+        credentials: 'omit',
+      }),
       ...options,
     });
 

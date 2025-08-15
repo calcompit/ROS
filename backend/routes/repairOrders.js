@@ -7,8 +7,13 @@ const router = express.Router();
 const emitRealtimeUpdate = (req, event, data) => {
   const io = req.app.get('io');
   if (io) {
+    console.log(`📡 Emitting ${event} to repair-orders room`);
+    console.log(`📡 Event data:`, data);
+    console.log(`📡 Connected clients:`, io.sockets.sockets.size);
     io.to('repair-orders').emit(event, data);
-    console.log(`📡 Emitted ${event}:`, data);
+    console.log(`✅ Successfully emitted ${event}:`, data);
+  } else {
+    console.error(`❌ WebSocket not available for event: ${event}`);
   }
 };
 
@@ -321,24 +326,35 @@ router.put('/:orderNo', async (req, res) => {
 
     if (!getPool()) {
       // Demo mode - update sample data
+      console.log('🔄 Demo mode: Updating order', orderNo);
+      console.log('🔄 Update fields:', updateFields);
+      
       const orderIndex = sampleData.findIndex(order => order.order_no.toString() === orderNo.toString());
       
       if (orderIndex === -1) {
+        console.log('❌ Order not found in sample data:', orderNo);
         return res.status(404).json({
           success: false,
           message: 'Repair order not found'
         });
       }
 
+      console.log('✅ Found order at index:', orderIndex);
+      console.log('📝 Original order data:', sampleData[orderIndex]);
+
       // Update allowed fields
       Object.keys(updateFields).forEach(key => {
         if (allowedFields.includes(key) && updateFields[key] !== undefined) {
+          console.log(`🔄 Updating field ${key}: ${sampleData[orderIndex][key]} -> ${updateFields[key]}`);
           sampleData[orderIndex][key] = updateFields[key];
         }
       });
 
       // Always update last_date
       sampleData[orderIndex].last_date = new Date().toISOString();
+      console.log('🔄 Updated last_date to:', sampleData[orderIndex].last_date);
+
+      console.log('📝 Updated order data:', sampleData[orderIndex]);
 
       // Emit real-time update
       emitRealtimeUpdate(req, 'order-updated', {
@@ -358,17 +374,23 @@ router.put('/:orderNo', async (req, res) => {
     const updates = [];
     const params = { orderNo: orderNoInt };
 
+    console.log('🔄 Database mode: Updating order', orderNo);
+    console.log('🔄 Update fields:', updateFields);
+
     Object.keys(updateFields).forEach(key => {
       if (allowedFields.includes(key) && updateFields[key] !== undefined) {
         updates.push(`${key} = @${key}`);
         params[key] = updateFields[key];
+        console.log(`🔄 Adding field ${key} = ${updateFields[key]}`);
       }
     });
 
     // Always update last_date
     updates.push('last_date = GETDATE()');
+    console.log('🔄 Adding last_date update');
 
     if (updates.length === 0) {
+      console.log('❌ No valid fields to update');
       return res.status(400).json({
         success: false,
         message: 'No valid fields to update'
@@ -376,19 +398,27 @@ router.put('/:orderNo', async (req, res) => {
     }
 
     const query = `UPDATE dbo.TBL_IT_PCMAINTENANCE SET ${updates.join(', ')} WHERE order_no = @orderNo`;
+    console.log('🔄 SQL Query:', query);
+    console.log('🔄 Parameters:', params);
+    
     const result = await executeQuery(query, params);
 
     if (result.success) {
+      console.log('✅ Database update successful');
+      
       // Fetch updated order
       const fetchQuery = 'SELECT * FROM dbo.TBL_IT_PCMAINTENANCE WHERE order_no = @orderNo';
       const fetchResult = await executeQuery(fetchQuery, { orderNo: orderNoInt });
       
       if (fetchResult.data.length === 0) {
+        console.log('❌ Updated order not found in database');
         return res.status(404).json({
           success: false,
           message: 'Repair order not found'
         });
       }
+
+      console.log('📝 Updated order data:', fetchResult.data[0]);
 
       // Emit real-time update
       emitRealtimeUpdate(req, 'order-updated', {
@@ -403,6 +433,7 @@ router.put('/:orderNo', async (req, res) => {
         data: fetchResult.data[0]
       });
     } else {
+      console.error('❌ Database update failed:', result.error);
       res.status(500).json({
         success: false,
         message: 'Failed to update repair order',

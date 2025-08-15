@@ -14,9 +14,11 @@ import { repairOrdersApi } from '@/services/api';
 interface HeaderProps {
   onNotificationClick?: (ticketId: string) => void;
   ticketCount?: number;
+  isUpdating?: boolean;
+  lastUpdateTime?: Date | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => {
+const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount, isUpdating, lastUpdateTime }) => {
   const { user, logout, isAdmin } = useAuth();
   const { isConnected: wsConnected } = useWebSocket();
   const [dbStatus, setDbStatus] = useState<'connected' | 'demo' | 'error' | 'checking'>('checking');
@@ -117,14 +119,22 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
             
             {/* WebSocket Status */}
             {wsConnected ? (
-              <Badge variant="default" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-                <Wifi className="h-3 w-3 mr-1" />
-                Live
+              <Badge variant="default" className={`bg-blue-500/10 text-blue-600 border-blue-500/20 transition-all duration-300 ${isUpdating ? 'animate-pulse scale-105' : ''}`}>
+                <Wifi className={`h-3 w-3 mr-1 ${isUpdating ? 'animate-spin' : ''}`} />
+                {isUpdating ? 'Updating...' : 'Live'}
               </Badge>
             ) : (
               <Badge variant="outline" className="bg-gray-500/10 text-gray-600 border-gray-500/20">
                 <WifiOff className="h-3 w-3 mr-1" />
                 Offline
+              </Badge>
+            )}
+            
+            {/* Last Update Time */}
+            {lastUpdateTime && (
+              <Badge variant="outline" className="text-xs bg-green-500/5 text-green-600 border-green-500/10">
+                <span className="animate-pulse">●</span>
+                {lastUpdateTime.toLocaleTimeString()}
               </Badge>
             )}
           </div>

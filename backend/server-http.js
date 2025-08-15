@@ -3,11 +3,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { testConnection } from './config/database.js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,11 +27,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Trust proxy for rate limiting (fixes X-Forwarded-For warning)
-app.set('trust proxy', 1);
-
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for development
+}));
 
 // Rate limiting - More lenient for development
 const limiter = rateLimit({
@@ -42,7 +42,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration for cloud deployment
+// CORS configuration for development
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -53,39 +53,18 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Allow all netlify.app domains
-    if (origin.endsWith('.netlify.app') || origin === 'https://netlify.app') {
-      return callback(null, true);
-    }
-    
-    // Allow all pages.dev domains (Cloudflare Pages)
-    if (origin.endsWith('.pages.dev') || origin.includes('pages.dev')) {
-      return callback(null, true);
-    }
-    
-    // Allow Railway domains
-    if (origin.includes('.railway.app')) {
-      return callback(null, true);
-    }
-    
-    // Allow Render domains
-    if (origin.includes('.onrender.com')) {
+    // Allow all 10.x.x.x IP addresses for local network
+    if (origin.startsWith('http://10.') || origin.startsWith('https://10.')) {
       return callback(null, true);
     }
     
     // Allow specific domains if needed
     const allowedDomains = [
-      'https://peaceful-tapioca-c9ada4.netlify.app',
       'https://calcompit-ros.netlify.app',
-      'https://ros-4hr.pages.dev',
+      'https://peaceful-tapioca-c9ada4.netlify.app',
       'https://fixit-bright-dash.netlify.app',
       'https://fixit-bright-dash.onrender.com'
     ];
-    
-    // Allow all 10.x.x.x IP addresses for local network
-    if (origin.startsWith('http://10.') || origin.startsWith('https://10.')) {
-      return callback(null, true);
-    }
     
     if (allowedDomains.includes(origin)) {
       return callback(null, true);
@@ -102,41 +81,34 @@ app.use(cors({
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Repair Order API is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Socket.IO health check endpoint
-app.get('/socket.io/', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Socket.IO endpoint is available',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT
   });
 });
 
 // API routes
-app.use('/api/repair-orders', repairOrderRoutes);
+app.use('/api', repairOrderRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/equipment', equipmentRoutes);
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Global error:', error);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('❌ Error:', err);
   res.status(500).json({
     success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    error: 'Internal Server Error',
+    message: err.message
   });
 });
 
@@ -144,47 +116,43 @@ app.use((error, req, res, next) => {
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'API endpoint not found'
+    error: 'Not Found',
+    message: `Route ${req.originalUrl} not found`
   });
 });
 
-// Start server
+// Start server function
 const startServer = async () => {
   try {
-    // Test database connection (non-blocking)
+    // Test database connection
     let dbConnected = false;
-    testConnection().then(connected => {
-      dbConnected = connected;
-      if (!dbConnected) {
-        console.warn('⚠️ Database connection failed - running in demo mode');
-        console.warn('⚠️ API will return sample data instead of real database');
-      } else {
-        console.log('✅ Database connected successfully');
-      }
-    }).catch(error => {
-      console.warn('⚠️ Database connection failed - running in demo mode');
-      console.warn('⚠️ API will return sample data instead of real database');
-    });
+    try {
+      await testConnection();
+      dbConnected = true;
+      console.log('✅ Database connected successfully');
+    } catch (dbError) {
+      console.log('⚠️ Demo mode: Database connection failed');
+      console.log('   Update .env with correct database settings');
+    }
 
-    // Get local IP address
-    const getLocalIP = async () => {
-      const { networkInterfaces } = await import('os');
-      const nets = networkInterfaces();
-      for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-          if (net.family === 'IPv4' && !net.internal) {
-            return net.address;
-          }
+    // Get server IP
+    const { networkInterfaces } = await import('os');
+    const nets = networkInterfaces();
+    let localIP = 'localhost';
+    
+    for (const name of Object.keys(nets)) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          localIP = net.address;
+          break;
         }
       }
-      return 'localhost';
-    };
+    }
 
-    const localIP = await getLocalIP();
-    const serverIP = localIP; // Use detected local IP for network access
+    const serverIP = process.env.TAILSCALE_IP || localIP;
 
     // Create HTTP server
-    const httpServer = createServer(app);
+    const httpServer = http.createServer(app);
     
     // Create Socket.IO server
     const io = new Server(httpServer, {
@@ -212,36 +180,6 @@ const startServer = async () => {
         console.log(`👋 Client ${socket.id} left room: ${room}`);
       });
       
-      // Test message handler
-      socket.on('test-message', (data) => {
-        console.log(`📨 Test message from ${socket.id}:`, data);
-        // Echo the message back to the sender
-        socket.emit('test-message-received', {
-          ...data,
-          serverTime: new Date().toISOString(),
-          socketId: socket.id
-        });
-      });
-      
-      // Order events for testing
-      socket.on('order-created', (data) => {
-        console.log(`🆕 Order created event from ${socket.id}:`, data);
-        // Broadcast to all clients in repair-orders room
-        socket.to('repair-orders').emit('order-created', data);
-      });
-      
-      socket.on('order-updated', (data) => {
-        console.log(`✏️ Order updated event from ${socket.id}:`, data);
-        // Broadcast to all clients in repair-orders room
-        socket.to('repair-orders').emit('order-updated', data);
-      });
-      
-      socket.on('order-deleted', (data) => {
-        console.log(`🗑️ Order deleted event from ${socket.id}:`, data);
-        // Broadcast to all clients in repair-orders room
-        socket.to('repair-orders').emit('order-deleted', data);
-      });
-      
       socket.on('disconnect', () => {
         console.log(`🔌 Client disconnected: ${socket.id}`);
       });
@@ -250,12 +188,7 @@ const startServer = async () => {
     // Make io available globally
     app.set('io', io);
 
-    // Add Socket.IO middleware to Express app
-    app.use((req, res, next) => {
-      req.io = io;
-      next();
-    });
-
+    // Start HTTP server
     httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 HTTP Server running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);

@@ -10,6 +10,7 @@ interface StatsCardProps {
   trendValue?: string;
   variant?: 'default' | 'primary' | 'success' | 'warning';
   className?: string;
+  isUpdating?: boolean;
 }
 
 const StatsCard = ({ 
@@ -20,7 +21,8 @@ const StatsCard = ({
   trend, 
   trendValue, 
   variant = 'default',
-  className = ''
+  className = '',
+  isUpdating = false
 }: StatsCardProps) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -49,7 +51,9 @@ const StatsCard = ({
   };
 
   return (
-    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${className}`}>
+    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${className} ${
+      isUpdating ? 'animate-pulse ring-2 ring-blue-500/20' : ''
+    }`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">

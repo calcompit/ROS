@@ -27,8 +27,8 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Set environment variables for development
-export VITE_API_URL=https://10.51.101.49:3001/api
-export VITE_WS_URL=ws://10.51.101.49:3002
+export VITE_API_URL=http://10.51.101.49:3001/api
+export VITE_WS_URL=ws://10.51.101.49:3001
 export VITE_APP_ENV=development
 
 echo "🔧 Environment variables set:"
@@ -40,7 +40,7 @@ echo ""
 # Start the development server
 echo "🌐 Starting Vite development server..."
 echo "📱 Frontend will be available at: http://localhost:8081"
-echo "🔗 Backend API: https://10.51.101.49:3001/api"
+echo "🔗 Backend API: http://10.51.101.49:3001/api"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""

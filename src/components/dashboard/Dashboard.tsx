@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight, List, Loader2, CheckCircle, XCircle, BarChart3, PieChart, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     recentOrders: RepairOrder[];
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const [dateFilter, setDateFilter] = useState(() => {
     const today = new Date();
     today.setDate(1); // Set to first day of current month
@@ -65,7 +67,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   });
   const [periodFilter, setPeriodFilter] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const { addNotification } = useNotifications();
-  const { isConnected: wsConnected } = useWebSocket();
+  const { isConnected: wsConnected, onOrderCreated, onOrderUpdated, onOrderDeleted, offOrderCreated, offOrderUpdated, offOrderDeleted } = useWebSocket();
   const { isConnected, isDemoMode, forceRedirectToError } = useDatabase();
 
   // Fetch dashboard statistics from API
@@ -100,32 +102,45 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   // Fetch tickets from API
   const fetchTickets = async () => {
     try {
+      console.log('📡 Fetching tickets from API...');
       setLoading(true);
       setError(null);
       const response = await repairOrdersApi.getAll();
       
       if (response.success) {
         if (response.demo) {
+          console.log('⚠️ Demo mode - using sample data');
           setError('Database connection failed - Demo mode');
           setTickets([]);
           if (!isConnected && !isDemoMode) {
             forceRedirectToError();
           }
         } else {
+          console.log('✅ API response received:', response.data);
+          console.log('📊 Tickets count:', response.data.length);
+          console.log('📊 Tickets details:', response.data.map(t => ({
+            order_no: t.order_no,
+            subject: t.subject,
+            status: t.status,
+            last_date: t.last_date
+          })));
           setTickets(response.data);
           setError(null);
         }
       } else {
+        console.error('❌ API response failed:', response.message);
         setError('Failed to fetch tickets');
         if (response.error) {
           forceRedirectToError();
         }
       }
     } catch (err) {
+      console.error('❌ Error fetching tickets:', err);
       setError('Failed to connect to server');
       forceRedirectToError();
     } finally {
       setLoading(false);
+      console.log('📡 Fetch tickets completed');
     }
   };
 
@@ -135,6 +150,90 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     fetchDashboardStats();
   }, []);
 
+  // Set up WebSocket event listeners for real-time updates
+  useEffect(() => {
+    console.log('🔄 Setting up WebSocket event listeners...');
+    console.log('🔄 WebSocket connected:', wsConnected);
+    console.log('🔄 Current tickets count:', tickets.length);
+    
+    if (!wsConnected) {
+      console.log('🔄 WebSocket not connected, skipping event setup');
+      return;
+    }
+
+    // Handle new order created
+    const handleOrderCreated = (data: any) => {
+      console.log('🔄 Real-time: Order created:', data);
+      console.log('🔄 Order details:', {
+        orderNo: data.data?.order_no || data.orderNo,
+        subject: data.data?.subject,
+        status: data.data?.status
+      });
+      console.log('🔄 Before update - Tickets count:', tickets.length);
+      setIsUpdating(true);
+      setLastUpdateTime(new Date());
+      fetchTickets();
+      fetchDashboardStats();
+      setTimeout(() => {
+        setIsUpdating(false);
+        console.log('🔄 After update - Tickets count:', tickets.length);
+      }, 1000);
+    };
+
+    // Handle order updated
+    const handleOrderUpdated = (data: any) => {
+      console.log('🔄 Real-time: Order updated:', data);
+      console.log('🔄 Updated order details:', {
+        orderNo: data.orderNo || data.data?.order_no,
+        subject: data.data?.subject,
+        status: data.data?.status,
+        lastDate: data.data?.last_date
+      });
+      console.log('🔄 Current tickets count before update:', tickets.length);
+      console.log('🔄 Current tickets:', tickets.map(t => ({ order_no: t.order_no, status: t.status })));
+      console.log('🔄 Fetching updated data...');
+      setIsUpdating(true);
+      setLastUpdateTime(new Date());
+      fetchTickets();
+      fetchDashboardStats();
+      setTimeout(() => {
+        setIsUpdating(false);
+        console.log('🔄 After update - Tickets count:', tickets.length);
+        console.log('🔄 Updated tickets:', tickets.map(t => ({ order_no: t.order_no, status: t.status })));
+      }, 1000);
+    };
+
+    // Handle order deleted
+    const handleOrderDeleted = (data: any) => {
+      console.log('🔄 Real-time: Order deleted:', data);
+      console.log('🔄 Deleted order:', data.orderNo);
+      console.log('🔄 Before delete - Tickets count:', tickets.length);
+      setIsUpdating(true);
+      setLastUpdateTime(new Date());
+      fetchTickets();
+      fetchDashboardStats();
+      setTimeout(() => {
+        setIsUpdating(false);
+        console.log('🔄 After delete - Tickets count:', tickets.length);
+      }, 1000);
+    };
+
+    console.log('🔄 Registering event listeners...');
+    // Register event listeners
+    onOrderCreated(handleOrderCreated);
+    onOrderUpdated(handleOrderUpdated);
+    onOrderDeleted(handleOrderDeleted);
+    console.log('🔄 Event listeners registered successfully');
+
+    // Cleanup event listeners
+    return () => {
+      console.log('🔄 Cleaning up event listeners...');
+      offOrderCreated(handleOrderCreated);
+      offOrderUpdated(handleOrderUpdated);
+      offOrderDeleted(handleOrderDeleted);
+    };
+  }, [wsConnected]); // Only depend on wsConnected to prevent infinite loops
+
   // Update ticket count when tickets change
   useEffect(() => {
     if (onTicketCountUpdate) {
@@ -143,15 +242,17 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     }
   }, [tickets, onTicketCountUpdate]);
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ticket.dept.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ticket.emp.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredTickets = useMemo(() => {
+    return tickets.filter(ticket => {
+      const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.dept.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.emp.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tickets, searchQuery, statusFilter]);
 
   // Filter tickets by date and period
   const getFilteredTickets = () => {
@@ -322,7 +423,15 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className={`text-sm font-medium ${wsConnected ? 'text-green-600' : 'text-red-600'}`}>
+                  {wsConnected ? 'Real-time Active' : 'Real-time Offline'}
+                </span>
+              </div>
+            </div>
             <p className="text-muted-foreground">Here's an overview of your repair tickets and system status.</p>
           </div>
 
@@ -436,6 +545,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Ticket}
                 variant="primary"
                 className={statusFilter === 'all' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
+                isUpdating={isUpdating}
               />
             </div>
             <div 
@@ -449,6 +559,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Clock}
                 variant="warning"
                 className={statusFilter === 'pending' ? 'ring-2 ring-warning/20 shadow-lg' : ''}
+                isUpdating={isUpdating}
               />
             </div>
             <div 
@@ -462,6 +573,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={TrendingUp}
                 variant="primary"
                 className={statusFilter === 'in-progress' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
+                isUpdating={isUpdating}
               />
             </div>
             <div 
@@ -475,6 +587,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Calendar}
                 variant="success"
                 className={statusFilter === 'completed' ? 'ring-2 ring-success/20 shadow-lg' : ''}
+                isUpdating={isUpdating}
               />
             </div>
           </div>
@@ -737,6 +850,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                   onTicketUpdate={handleTicketUpdate}
                   onTicketDelete={handleTicketDelete}
                   isHighlighted={highlightedTicketId === ticket.order_no}
+                  isUpdating={isUpdating}
+                  lastUpdateTime={lastUpdateTime}
                 />
               ))}
             </div>

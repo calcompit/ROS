@@ -14,37 +14,33 @@ import DatabaseError from "./pages/DatabaseError";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  return (
-    <DatabaseProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/database-error" element={<DatabaseError />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
-    </DatabaseProvider>
-  );
-};
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <NotificationProvider>
         <WebSocketProvider>
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true
-            }}
-          >
-            <AppContent />
-          </BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
+              <DatabaseProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<LoginForm />} />
+                  <Route path="/database-error" element={<DatabaseError />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </DatabaseProvider>
+            </BrowserRouter>
+          </TooltipProvider>
         </WebSocketProvider>
       </NotificationProvider>
     </AuthProvider>

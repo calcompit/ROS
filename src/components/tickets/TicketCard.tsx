@@ -35,9 +35,11 @@ interface TicketCardProps {
   onTicketUpdate?: (updatedTicket: Ticket) => Promise<void>;
   onTicketDelete?: (orderNo: string | number) => Promise<void>;
   isHighlighted?: boolean;
+  isUpdating?: boolean;
+  lastUpdateTime?: Date | null;
 }
 
-const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false }: TicketCardProps) => {
+const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false, isUpdating = false, lastUpdateTime }: TicketCardProps) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -173,6 +175,8 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       <Card className={`flex flex-col h-full shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${
         isHighlighted 
           ? 'border-primary border-2 ring-2 ring-primary/20 shadow-lg' 
+          : isUpdating
+          ? 'border-blue-500 border-2 ring-2 ring-blue-500/20 shadow-lg animate-pulse'
           : 'border-border'
       }`}>
         <CardHeader className="pb-3">
@@ -190,6 +194,19 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
+              {/* Update Indicator */}
+              {isUpdating && (
+                <div className="flex items-center gap-1 text-xs text-blue-600 animate-pulse">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+                  <span>Updating...</span>
+                </div>
+              )}
+              {lastUpdateTime && !isUpdating && (
+                <div className="flex items-center gap-1 text-xs text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Updated {lastUpdateTime.toLocaleTimeString()}</span>
+                </div>
+              )}
               <Badge variant="outline" className={getStatusColor(ticket.status)}>
                 {formatStatus(ticket.status)}
               </Badge>
