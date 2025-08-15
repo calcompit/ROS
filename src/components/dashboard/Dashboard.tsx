@@ -469,55 +469,55 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="pl-10"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 flex-wrap">
               <Button
                 variant={statusFilter === 'all' ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setStatusFilter('all')}
-                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
+                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">All Status</span>
-                <span className="sm:hidden">ทั้งหมด</span>
+                <span className="sm:hidden">All</span>
                 ({tickets.length})
               </Button>
               <Button
                 variant={statusFilter === 'pending' ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setStatusFilter('pending')}
-                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
+                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Pending</span>
-                <span className="sm:hidden">รอ</span>
+                <span className="sm:hidden">Pend</span>
                 ({tickets.filter(t => t.status === 'pending').length})
               </Button>
               <Button
                 variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setStatusFilter('in-progress')}
-                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
+                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">In Progress</span>
-                <span className="sm:hidden">กำลัง</span>
+                <span className="sm:hidden">Prog</span>
                 ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
               <Button
                 variant={statusFilter === 'completed' ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setStatusFilter('completed')}
-                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
+                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Completed</span>
-                <span className="sm:hidden">เสร็จ</span>
+                <span className="sm:hidden">Done</span>
                 ({tickets.filter(t => t.status === 'completed').length})
               </Button>
               <Button
                 variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setStatusFilter('cancelled')}
-                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
+                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Cancelled</span>
-                <span className="sm:hidden">ยก</span>
+                <span className="sm:hidden">Cancel</span>
                 ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
             </div>
