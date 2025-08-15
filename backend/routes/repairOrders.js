@@ -192,7 +192,8 @@ router.post('/', async (req, res) => {
       device_type,
       items,
       rootcause,
-      emprepair
+      emprepair,
+      insert_date
     } = req.body;
 
     // Validation
