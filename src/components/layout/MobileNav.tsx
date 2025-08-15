@@ -144,12 +144,9 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
             {/* Sidebar Header */}
             <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <Menu className="h-4 w-4 text-primary" />
-                </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-                  <p className="text-xs text-muted-foreground">Navigation options</p>
+                  <h2 className="text-lg font-semibold text-foreground">IT ROS</h2>
+                  <p className="text-xs text-muted-foreground">Equipment Management Dashboard</p>
                 </div>
               </div>
             </div>

@@ -48,9 +48,6 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
                   <div className="flex items-center gap-4">
             <MobileNav ticketCount={ticketCount} />
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer">
-                <span className="text-primary-foreground font-bold text-lg">IT</span>
-              </div>
               <div>
                 <h1 className="text-xl lg:text-2xl font-bold text-foreground lg:hidden">IT ROS</h1>
                 <p className="text-sm text-muted-foreground lg:hidden">Equipment Management Dashboard</p>
