@@ -1,5 +1,18 @@
 // API Service for connecting to backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://10.51.109.19:3001/api';
+// Try to detect local IP automatically, fallback to environment variable or default
+const getLocalIP = () => {
+  // Check if we're in development mode
+  if (import.meta.env.DEV) {
+    // Try to get the current hostname/IP from the browser
+    const hostname = window.location.hostname;
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `https://${hostname}:3001/api`;
+    }
+  }
+  return import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
+};
+
+const API_BASE_URL = getLocalIP();
 
 export default API_BASE_URL;
 

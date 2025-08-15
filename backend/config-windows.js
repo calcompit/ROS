@@ -1,4 +1,4 @@
-// Configuration for Windows machine at IP 10.51.109.19
+// Configuration for Windows machine - Auto-detect IP
 export const config = {
   // Server Configuration
   PORT: process.env.PORT || 3001,
@@ -19,8 +19,8 @@ export const config = {
   ALLOWED_ORIGINS: [
     'https://calcompit-ros.netlify.app',
     'https://peaceful-tapioca-c9ada4.netlify.app',
-    'http://10.51.109.19',
-    'https://10.51.109.19',
+    'https://fixit-bright-dash.netlify.app',
+    'https://fixit-bright-dash.onrender.com',
     'http://localhost:5173',
     'https://localhost:5173'
   ],
@@ -32,8 +32,8 @@ export const config = {
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   
-  // Server IP
-  SERVER_IP: '10.51.109.19'
+  // Server IP - Auto-detect
+  SERVER_IP: process.env.SERVER_IP || 'localhost'
 };
 
 export default config;
