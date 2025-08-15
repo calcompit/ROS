@@ -168,10 +168,10 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 <Calendar className="h-4 w-4" />
                 <span>{new Date(ticket.insert_date).toLocaleDateString()}</span>
               </div>
-              {ticket.deviceType && (
+              {(ticket.device_type || ticket.deviceType) && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>{ticket.deviceType}</span>
+                  <span>{ticket.device_type || ticket.deviceType}</span>
                 </div>
               )}
             </div>
