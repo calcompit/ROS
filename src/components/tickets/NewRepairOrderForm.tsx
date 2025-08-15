@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Monitor, Laptop, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -72,6 +72,20 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
     const year = new Date().getFullYear();
     const timestamp = Date.now().toString().slice(-3);
     return `RO-${year}-${timestamp}`;
+  };
+
+  // Get device type icon
+  const getDeviceTypeIcon = (deviceType: string) => {
+    switch (deviceType?.toLowerCase()) {
+      case 'computer':
+        return <Monitor className="h-4 w-4" />;
+      case 'laptop':
+        return <Laptop className="h-4 w-4" />;
+      case 'other':
+        return <Smartphone className="h-4 w-4" />;
+      default:
+        return <Smartphone className="h-4 w-4" />;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,9 +208,18 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                   <SelectValue placeholder="Select device type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Computer">Computer</SelectItem>
-                  <SelectItem value="Laptop">Laptop</SelectItem>
-                  <SelectItem value="Order">Order</SelectItem>
+                  <SelectItem value="Computer" className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4" />
+                    Computer
+                  </SelectItem>
+                  <SelectItem value="Laptop" className="flex items-center gap-2">
+                    <Laptop className="h-4 w-4" />
+                    Laptop
+                  </SelectItem>
+                  <SelectItem value="Other" className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    Other
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

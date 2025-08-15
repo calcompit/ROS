@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2, Save } from 'lucide-react';
+import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2, Save, Monitor, Laptop, Smartphone } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -103,6 +103,23 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
     ).join(' ');
   };
 
+  // Get device type icon
+  const getDeviceTypeIcon = (deviceType: string) => {
+    switch (deviceType?.toLowerCase()) {
+      case 'computer':
+      case 'pc':
+      case 'desktop':
+        return <Monitor className="h-4 w-4" />;
+      case 'laptop':
+      case 'notebook':
+        return <Laptop className="h-4 w-4" />;
+      case 'other':
+        return <Smartphone className="h-4 w-4" />;
+      default:
+        return <Smartphone className="h-4 w-4" />;
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -170,7 +187,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               </div>
               {(ticket.device_type || ticket.deviceType) && (
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                  {getDeviceTypeIcon(ticket.device_type || ticket.deviceType)}
                   <span>{ticket.device_type || ticket.deviceType}</span>
                 </div>
               )}
@@ -316,7 +333,10 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               {(ticket.device_type || ticket.deviceType) && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">{getDisplayName('deviceType')}</label>
-                  <p className="text-foreground mt-1">{ticket.device_type || ticket.deviceType}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getDeviceTypeIcon(ticket.device_type || ticket.deviceType)}
+                    <span className="text-foreground">{ticket.device_type || ticket.deviceType}</span>
+                  </div>
                 </div>
               )}
             </div>
