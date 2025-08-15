@@ -48,6 +48,10 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-foreground lg:hidden">IT ROS</h1>
             <p className="text-sm text-muted-foreground lg:hidden">Equipment Management Dashboard</p>
+            <div className="hidden lg:flex flex-col">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">IT ROS</h1>
+              <p className="text-sm text-muted-foreground">Equipment Management Dashboard</p>
+            </div>
           </div>
         </div>
 

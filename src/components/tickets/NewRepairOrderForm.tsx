@@ -49,6 +49,8 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         }
         
         if (departmentsResponse.success) {
+          console.log('📊 Departments API Response:', departmentsResponse);
+          console.log('📋 Departments Data:', departmentsResponse.data);
           setDepartments(departmentsResponse.data);
         }
       } catch (error) {
