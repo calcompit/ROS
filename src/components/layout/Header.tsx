@@ -44,8 +44,9 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-4 max-w-full">
-                          <div className="flex items-center gap-4">
+      <div className="container flex h-16 items-center px-4 max-w-full">
+        {/* Left Section - Logo and Mobile Nav */}
+        <div className="flex items-center gap-4 flex-1">
           <MobileNav ticketCount={ticketCount} />
           <div className="flex flex-col">
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
@@ -55,21 +56,23 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
           </div>
         </div>
 
-
-
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="hidden md:flex max-w-md">
-            <div className="relative">
+        {/* Center Section - Search Bar */}
+        <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex max-w-md w-full">
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tickets, equipment..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200"
+                className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200 w-full"
               />
             </div>
           </div>
+        </div>
+
+        {/* Right Section - Status and User */}
+        <div className="flex items-center gap-3 flex-1 justify-end">
 
           {/* Database Status Indicator */}
           <div className="hidden sm:flex">
