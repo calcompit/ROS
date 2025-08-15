@@ -41,13 +41,13 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:ml-80">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
         <div className="flex items-center gap-4">
           <MobileNav ticketCount={ticketCount} />
           <div>
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground">TechFix Pro</h1>
-            <p className="hidden lg:block text-sm text-muted-foreground">Equipment Management Dashboard</p>
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground lg:hidden">IT ROS</h1>
+            <p className="text-sm text-muted-foreground lg:hidden">Equipment Management Dashboard</p>
           </div>
         </div>
 

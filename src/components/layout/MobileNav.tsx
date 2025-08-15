@@ -66,11 +66,12 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
 
       {/* Desktop: Fixed Sidebar */}
       <div className="hidden lg:block">
-        <div className="fixed left-0 top-0 h-full w-80 bg-background border-r border-border z-40">
+        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 bg-background border-r border-border z-40">
           <div className="flex flex-col h-full">
             <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-center">
-                <h2 className="text-lg font-semibold text-foreground">TechFix Pro</h2>
+              <div className="flex flex-col items-center text-center">
+                <h2 className="text-xl font-bold text-foreground mb-1">IT ROS</h2>
+                <p className="text-xs text-muted-foreground">Equipment Management Dashboard</p>
               </div>
             </div>
             <nav className="flex-1 p-4">
