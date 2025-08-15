@@ -141,16 +141,6 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
       <div className="hidden lg:block">
         <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 bg-gradient-to-b from-background to-background/95 backdrop-blur-xl border-r border-border/50 z-40 shadow-lg">
           <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
-            <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">IT ROS</h2>
-                  <p className="text-xs text-muted-foreground">Equipment Management Dashboard</p>
-                </div>
-              </div>
-            </div>
-
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-2">
@@ -186,14 +176,6 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
                 ))}
               </div>
             </nav>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-border/50 bg-gradient-to-r from-muted/20 to-muted/10">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>IT ROS v1.0</span>
-                <span>© 2024</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
