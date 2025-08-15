@@ -45,12 +45,9 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
         <div className="flex items-center gap-4">
           <MobileNav ticketCount={ticketCount} />
-          <div className="hidden lg:block">
-            <h1 className="text-2xl font-bold text-foreground">TechFix Pro</h1>
-            <p className="text-sm text-muted-foreground">Equipment Management Dashboard</p>
-          </div>
-          <div className="lg:hidden">
-            <h1 className="text-xl font-bold text-foreground">TechFix Pro</h1>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground">TechFix Pro</h1>
+            <p className="hidden lg:block text-sm text-muted-foreground">Equipment Management Dashboard</p>
           </div>
         </div>
 

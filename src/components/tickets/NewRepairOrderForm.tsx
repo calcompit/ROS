@@ -89,7 +89,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         action: '',
         emprepair: '',
         status: 'pending',
-        insert_date: new Date().toISOString()
+
       });
 
       if (response.success) {
@@ -212,7 +212,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
               <Label htmlFor="name">Device/PC Name</Label>
               <Input
                 id="name"
-                placeholder="e.g., PC-IT-001, PRINTER-ACC-02"
+                placeholder="P123456789"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="bg-muted/30 focus:bg-background transition-colors"

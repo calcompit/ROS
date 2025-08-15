@@ -24,7 +24,7 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
   };
 
   return (
-    <div className="lg:hidden">
+    <div>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="text-foreground">
@@ -38,16 +38,8 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
           </SheetHeader>
           <div className="flex flex-col h-full">
             <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-center">
                 <h2 className="text-lg font-semibold text-foreground">TechFix Pro</h2>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setIsOpen(false)}
-                  aria-label="Close navigation menu"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
               </div>
             </div>
             <nav className="flex-1 p-4">
