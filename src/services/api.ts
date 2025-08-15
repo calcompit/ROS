@@ -104,7 +104,7 @@ export const repairOrdersApi = {
 
   // Update repair order
   update: async (orderNo: string | number, updates: Partial<RepairOrder>): Promise<ApiResponse<RepairOrder>> => {
-    return apiRequest<RepairOrder>(`/tickets/${orderNo}`, {
+    return apiRequest<RepairOrder>(`/repair-orders/${orderNo}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
@@ -112,14 +112,14 @@ export const repairOrdersApi = {
 
   // Delete repair order
   delete: async (orderNo: string | number): Promise<ApiResponse<void>> => {
-    return apiRequest<void>(`/tickets/${orderNo}`, {
+    return apiRequest<void>(`/repair-orders/${orderNo}`, {
       method: 'DELETE',
     });
   },
 
   // Get dashboard statistics
   getStats: async (): Promise<ApiResponse<any>> => {
-    return apiRequest<any>('/tickets/stats/dashboard');
+    return apiRequest<any>('/repair-orders/stats/dashboard');
   },
 };
 
