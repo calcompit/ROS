@@ -48,15 +48,15 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
         {/* Left Section - Logo, Search Bar, and Mobile Nav */}
         <div className="flex items-center gap-4">
           <MobileNav ticketCount={ticketCount} />
-          <div className="flex flex-col">
+          <div className="hidden md:flex flex-col">
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
               IT ROS
             </h1>
             <p className="text-xs lg:text-sm text-muted-foreground">Equipment Management Dashboard</p>
           </div>
           
-          {/* Search Bar */}
-          <div className="hidden md:flex max-w-md ml-8">
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex max-w-md ml-12">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -64,6 +64,19 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200"
+              />
+            </div>
+          </div>
+          
+          {/* Search Bar - Mobile (Full Width) */}
+          <div className="md:hidden flex-1 max-w-none ml-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search tickets, equipment..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200 w-full"
               />
             </div>
           </div>
