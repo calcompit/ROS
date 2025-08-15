@@ -75,21 +75,11 @@ const MobileNav = ({ ticketCount }: MobileNavProps) => {
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-secondary/5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                      IT ROS
-                    </h2>
-                    <p className="text-xs text-muted-foreground">Equipment Management Dashboard</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(false)}
-                    className="h-8 w-8 rounded-lg hover:bg-accent"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                <div>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                    IT ROS
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Equipment Management Dashboard</p>
                 </div>
               </div>
 
