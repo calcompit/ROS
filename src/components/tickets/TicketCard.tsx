@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, AlertCircle, Eye, Edit, X } from 'lucide-react';
+import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -244,11 +244,6 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 <DialogTitle>
                   {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
                 </DialogTitle>
-                <DialogDescription>
-                  {isEditing 
-                    ? "Update repair order information (Admin access)" 
-                    : `Complete information about repair order for ${ticket.dept}`}
-                </DialogDescription>
               </DialogHeader>
               <Button
                 variant="ghost"
@@ -263,6 +258,13 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
 
           {/* Body - Scrollable */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+            {/* Description */}
+            <div className="text-sm text-muted-foreground">
+              {isEditing 
+                ? "Update repair order information (Admin access)" 
+                : `Complete information about repair order for ${ticket.dept}`}
+            </div>
+
             {isEditing ? (
               <EditTicketForm 
                 ticket={ticket}
@@ -380,24 +382,47 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
 
           {/* Footer - Fixed */}
           <div className="mt-auto bg-background border-t px-6 py-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant="outline" className="flex-1">
-                Download Report
-              </Button>
-              <Button className="flex-1">
-                Contact Support
-              </Button>
-              {isAdmin() && (
+            {isEditing ? (
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
-                  variant="secondary" 
+                  type="button" 
+                  variant="outline" 
                   className="flex-1"
-                  onClick={() => setIsEditing(true)}
+                  onClick={handleEditCancel}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
                 </Button>
-              )}
-            </div>
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={() => onTicketDelete && onTicketDelete(ticket.order_no)}
+                  className="flex-1"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="flex-1">
+                  Download Report
+                </Button>
+                <Button className="flex-1">
+                  Contact Support
+                </Button>
+                {isAdmin() && (
+                  <Button 
+                    variant="secondary" 
+                    className="flex-1"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
