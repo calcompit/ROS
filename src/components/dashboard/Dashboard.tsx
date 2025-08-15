@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 import StatsCard from './StatsCard';
 import TicketCard, { Ticket as TicketType } from '../tickets/TicketCard';
 import NewRepairOrderForm from '../tickets/NewRepairOrderForm';
@@ -51,6 +52,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   });
   const [periodFilter, setPeriodFilter] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const { addNotification } = useNotifications();
+  const { isConnected: wsConnected } = useWebSocket();
   const { isConnected, isDemoMode, forceRedirectToError } = useDatabase();
 
   // Fetch tickets from API
@@ -161,7 +163,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     });
   };
 
-  const handleTicketUpdate = (updatedTicket: TicketType) => {
+  const handleTicketUpdate = async (updatedTicket: TicketType) => {
     const oldTicket = tickets.find(t => t.order_no === updatedTicket.order_no);
     setTickets(prev => prev.map(ticket => 
       ticket.order_no === updatedTicket.order_no ? updatedTicket : ticket
@@ -269,7 +271,15 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-sm text-muted-foreground">
+                  {wsConnected ? '🟢 Realtime' : '🔴 Offline'}
+                </span>
+              </div>
+            </div>
             <p className="text-muted-foreground">Here's an overview of your repair tickets and system status.</p>
           </div>
 

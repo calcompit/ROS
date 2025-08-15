@@ -3,6 +3,15 @@ import { executeQuery, getPool } from '../config/database.js';
 
 const router = express.Router();
 
+// Function to emit real-time updates
+const emitRealtimeUpdate = (req, event, data) => {
+  const io = req.app.get('io');
+  if (io) {
+    io.to('repair-orders').emit(event, data);
+    console.log(`📡 Emitted ${event}:`, data);
+  }
+};
+
 // Sample data for demo mode
 const sampleData = [
   {
@@ -227,6 +236,12 @@ router.post('/', async (req, res) => {
       // Add to sample data
       sampleData.unshift(newOrder);
       
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-created', {
+        data: newOrder,
+        action: 'created'
+      });
+      
       return res.status(201).json({
         success: true,
         message: 'Repair order created successfully (demo mode)',
@@ -259,6 +274,12 @@ router.post('/', async (req, res) => {
       const fetchQuery = 'SELECT TOP 1 * FROM dbo.TBL_IT_PCMAINTENANCE WHERE subject = @subject AND name = @name ORDER BY order_no DESC';
       const fetchResult = await executeQuery(fetchQuery, { subject, name });
       
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-created', {
+        data: fetchResult.data[0],
+        action: 'created'
+      });
+
       res.status(201).json({
         success: true,
         message: 'Repair order created successfully',
@@ -319,6 +340,13 @@ router.put('/:orderNo', async (req, res) => {
       // Always update last_date
       sampleData[orderIndex].last_date = new Date().toISOString();
 
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-updated', {
+        orderNo: orderNo,
+        data: sampleData[orderIndex],
+        action: 'updated'
+      });
+
       return res.json({
         success: true,
         message: 'Repair order updated successfully (demo mode)',
@@ -362,6 +390,13 @@ router.put('/:orderNo', async (req, res) => {
         });
       }
 
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-updated', {
+        orderNo: orderNo,
+        data: fetchResult.data[0],
+        action: 'updated'
+      });
+
       res.json({
         success: true,
         message: 'Repair order updated successfully',
@@ -390,6 +425,33 @@ router.delete('/:orderNo', async (req, res) => {
     // Convert orderNo to integer for database query
     const orderNoInt = parseInt(orderNo);
     
+    if (!getPool()) {
+      // Demo mode - remove from sample data
+      const orderIndex = sampleData.findIndex(order => order.order_no.toString() === orderNo.toString());
+      
+      if (orderIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Repair order not found'
+        });
+      }
+
+      // Remove from sample data
+      sampleData.splice(orderIndex, 1);
+
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-deleted', {
+        orderNo: orderNo,
+        action: 'deleted'
+      });
+
+      return res.json({
+        success: true,
+        message: 'Repair order deleted successfully (demo mode)',
+        demo: true
+      });
+    }
+    
     const query = 'DELETE FROM dbo.TBL_IT_PCMAINTENANCE WHERE order_no = @orderNo';
     const result = await executeQuery(query, { orderNo: orderNoInt });
 
@@ -400,6 +462,12 @@ router.delete('/:orderNo', async (req, res) => {
           message: 'Repair order not found'
         });
       }
+
+      // Emit real-time update
+      emitRealtimeUpdate(req, 'order-deleted', {
+        orderNo: orderNo,
+        action: 'deleted'
+      });
 
       res.json({
         success: true,

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { DatabaseProvider } from "@/contexts/DatabaseContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
@@ -35,14 +36,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <NotificationProvider>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <AppContent />
-        </BrowserRouter>
+        <WebSocketProvider>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
+            <AppContent />
+          </BrowserRouter>
+        </WebSocketProvider>
       </NotificationProvider>
     </AuthProvider>
   </QueryClientProvider>

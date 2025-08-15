@@ -8,6 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { testConnection } from './config/database.js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -172,10 +174,45 @@ const startServer = async () => {
         cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
       };
 
-      https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+      const httpsServer = https.createServer(options, app);
+      
+      // Create Socket.IO server
+      const io = new Server(httpsServer, {
+        cors: {
+          origin: "*",
+          methods: ["GET", "POST"]
+        }
+      });
+
+      // Socket.IO event handlers
+      io.on('connection', (socket) => {
+        console.log(`🔌 Client connected: ${socket.id}`);
+        
+        // Join room for real-time updates
+        socket.on('join-room', (room) => {
+          socket.join(room);
+          console.log(`👥 Client ${socket.id} joined room: ${room}`);
+        });
+        
+        // Leave room
+        socket.on('leave-room', (room) => {
+          socket.leave(room);
+          console.log(`👋 Client ${socket.id} left room: ${room}`);
+        });
+        
+        socket.on('disconnect', () => {
+          console.log(`🔌 Client disconnected: ${socket.id}`);
+        });
+      });
+
+      // Make io available globally
+      app.set('io', io);
+
+      httpsServer.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 HTTPS Server running on port ${PORT}`);
         console.log(`📍 Health check: https://localhost:${PORT}/health`);
         console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
+        console.log(`🔌 WebSocket enabled for real-time updates`);
         console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
         if (!dbConnected) {
           console.log(`⚠️ Demo mode: Update .env with correct database settings`);
@@ -201,10 +238,45 @@ const startServer = async () => {
           cert: fs.readFileSync(path.join(sslDir, 'cert.pem'))
         };
 
-        https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+        const httpsServer = https.createServer(options, app);
+        
+        // Create Socket.IO server
+        const io = new Server(httpsServer, {
+          cors: {
+            origin: "*",
+            methods: ["GET", "POST"]
+          }
+        });
+
+        // Socket.IO event handlers
+        io.on('connection', (socket) => {
+          console.log(`🔌 Client connected: ${socket.id}`);
+          
+          // Join room for real-time updates
+          socket.on('join-room', (room) => {
+            socket.join(room);
+            console.log(`👥 Client ${socket.id} joined room: ${room}`);
+          });
+          
+          // Leave room
+          socket.on('leave-room', (room) => {
+            socket.leave(room);
+            console.log(`👋 Client ${socket.id} left room: ${room}`);
+          });
+          
+          socket.on('disconnect', () => {
+            console.log(`🔌 Client disconnected: ${socket.id}`);
+          });
+        });
+
+        // Make io available globally
+        app.set('io', io);
+
+        httpsServer.listen(PORT, '0.0.0.0', () => {
           console.log(`🚀 HTTPS Server running on port ${PORT}`);
           console.log(`📍 Health check: https://localhost:${PORT}/health`);
           console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
+          console.log(`🔌 WebSocket enabled for real-time updates`);
           console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
           if (!dbConnected) {
             console.log(`⚠️ Demo mode: Update .env with correct database settings`);
