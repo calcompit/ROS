@@ -30,10 +30,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   useEffect(() => {
     // Get API base URL from environment or use default
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://10.51.101.49:3001';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net';
     
-    // Use Windows machine IP for development
-    const finalApiUrl = 'http://10.51.101.49:3001';
+    // Use Tailscale tunnel URL
+    const finalApiUrl = apiUrl;
     
     const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
     
