@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Ticket } from './TicketCard';
 import { repairOrdersApi, equipmentApi } from '@/services/api';
 import { useDatabase } from '@/contexts/DatabaseContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EditTicketFormProps {
   ticket: Ticket;
@@ -18,13 +19,14 @@ interface EditTicketFormProps {
 }
 
 const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCancel, onDelete }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     subject: ticket.subject,        // Issue Title -> Subject
     rootcause: ticket.rootcause || '',  // Problem Description -> Root Cause
     status: ticket.status,
     priority: ticket.priority || 'medium',
-    deviceType: ticket.deviceType || '',
-    emp_repair: ticket.emprepair || '',   // Technician -> emp_repair
+    deviceType: ticket.device_type || ticket.deviceType || '',  // Use device_type from database
+    emp_repair: user?.username?.toUpperCase() || ticket.emprepair || '',   // Use admin username in uppercase
     items: ticket.items || '',             // New field
     action: ticket.action || '',           // New field
     notes: ticket.notes || '',             // Notes field
@@ -151,7 +153,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
             <SelectContent>
               <SelectItem value="Computer">Computer</SelectItem>
               <SelectItem value="Laptop">Laptop</SelectItem>
-              <SelectItem value="Order">Order</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -257,9 +259,11 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         <Label htmlFor="edit-emp_repair">Assigned Technician</Label>
         <Input
           id="edit-emp_repair"
-          placeholder="Enter technician name"
+          placeholder="Admin username will be auto-filled"
           value={formData.emp_repair}
           onChange={(e) => setFormData(prev => ({ ...prev, emp_repair: e.target.value }))}
+          className="bg-muted/30 focus:bg-background transition-colors"
+          readOnly
         />
       </div>
 
