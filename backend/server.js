@@ -18,6 +18,7 @@ import authRoutes from './routes/auth.js';
 import notificationRoutes from './routes/notifications.js';
 import subjectRoutes from './routes/subjects.js';
 import departmentRoutes from './routes/departments.js';
+import equipmentRoutes from './routes/equipment.js';
 
 // Load environment variables
 dotenv.config();
@@ -115,6 +116,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/equipment', equipmentRoutes);
 
 // Global error handler
 app.use((error, req, res, next) => {

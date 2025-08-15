@@ -182,6 +182,13 @@ export const departmentsApi = {
   },
 };
 
+// Equipment API
+export const equipmentApi = {
+  getAll: async (): Promise<ApiResponse<{ equipment: string }[]>> => {
+    return apiRequest<{ equipment: string }[]>('/equipment');
+  },
+};
+
 // Auth API
 export const authApi = {
   login: async (credentials: { username: string; password: string }): Promise<ApiResponse<any>> => {

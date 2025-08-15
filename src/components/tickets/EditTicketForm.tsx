@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Ticket } from './TicketCard';
-import { repairOrdersApi } from '@/services/api';
+import { repairOrdersApi, equipmentApi } from '@/services/api';
 import { useDatabase } from '@/contexts/DatabaseContext';
 
 interface EditTicketFormProps {
@@ -33,8 +33,34 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     emp: ticket.emp                        // Reporter (read-only)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [equipmentList, setEquipmentList] = useState<string[]>([]);
+  const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const { toast } = useToast();
   const { forceRedirectToError } = useDatabase();
+
+  // Load equipment list on component mount
+  React.useEffect(() => {
+    const loadEquipment = async () => {
+      try {
+        const response = await equipmentApi.getAll();
+        if (response.success) {
+          const equipment = response.data.map(item => item.equipment);
+          setEquipmentList(equipment);
+        } else {
+          // Fallback to default equipment list
+          setEquipmentList(['RAM', 'POWERSUPPLY', 'HDD', 'SSD', 'MOTHERBOARD', 'CPU', 'GPU', 'NETWORK', 'KEYBOARD', 'MOUSE']);
+        }
+      } catch (error) {
+        console.error('Error loading equipment:', error);
+        // Fallback to default equipment list
+        setEquipmentList(['RAM', 'POWERSUPPLY', 'HDD', 'SSD', 'MOTHERBOARD', 'CPU', 'GPU', 'NETWORK', 'KEYBOARD', 'MOUSE']);
+      } finally {
+        setIsLoadingEquipment(false);
+      }
+    };
+
+    loadEquipment();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,24 +160,28 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
       <div className="space-y-2">
         <Label htmlFor="edit-items">Equipment/Items Details</Label>
         <div className="flex flex-wrap gap-2 mb-2">
-          {['RAM', 'POWERSUPPLY', 'HDD', 'SSD', 'MOTHERBOARD', 'CPU', 'GPU', 'NETWORK', 'KEYBOARD', 'MOUSE'].map((item) => (
-            <Button
-              key={item}
-              type="button"
-              variant={formData.items?.includes(item) ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                const currentItems = formData.items ? formData.items.split(', ').filter(i => i.trim()) : [];
-                const newItems = currentItems.includes(item) 
-                  ? currentItems.filter(i => i !== item)
-                  : [...currentItems, item];
-                setFormData(prev => ({ ...prev, items: newItems.join(', ') }));
-              }}
-              className="text-xs"
-            >
-              {item}
-            </Button>
-          ))}
+          {isLoadingEquipment ? (
+            <div className="text-sm text-muted-foreground">Loading equipment...</div>
+          ) : (
+            equipmentList.map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant={formData.items?.includes(item) ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  const currentItems = formData.items ? formData.items.split(', ').filter(i => i.trim()) : [];
+                  const newItems = currentItems.includes(item) 
+                    ? currentItems.filter(i => i !== item)
+                    : [...currentItems, item];
+                  setFormData(prev => ({ ...prev, items: newItems.join(', ') }));
+                }}
+                className="text-xs"
+              >
+                {item}
+              </Button>
+            ))
+          )}
         </div>
         <Textarea
           id="edit-items"
