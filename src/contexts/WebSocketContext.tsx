@@ -41,11 +41,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     console.log('🔌 Connecting to WebSocket:', wsUrl);
     
     const newSocket = io(wsUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       timeout: 20000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      rejectUnauthorized: false,
+      secure: true
     });
 
     newSocket.on('connect', () => {

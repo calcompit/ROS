@@ -181,7 +181,9 @@ const startServer = async () => {
         cors: {
           origin: "*",
           methods: ["GET", "POST"]
-        }
+        },
+        allowEIO3: true,
+        transports: ['websocket', 'polling']
       });
 
       // Socket.IO event handlers
@@ -245,7 +247,9 @@ const startServer = async () => {
           cors: {
             origin: "*",
             methods: ["GET", "POST"]
-          }
+          },
+          allowEIO3: true,
+          transports: ['websocket', 'polling']
         });
 
         // Socket.IO event handlers
