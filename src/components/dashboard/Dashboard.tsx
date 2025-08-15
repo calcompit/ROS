@@ -56,7 +56,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
   const fetchTickets = async () => {
     try {
       console.log('🔄 Fetching tickets...');
-      console.log('🔗 API Base URL:', 'http://localhost:3001/api');
+      console.log('🔗 API Base URL:', 'https://10.13.12.36:3001/api');
       setLoading(true);
       setError(null);
       const response = await repairOrdersApi.getAll();

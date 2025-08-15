@@ -23,7 +23,7 @@ import departmentRoutes from './routes/departments.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
@@ -74,8 +74,14 @@ app.use(cors({
       'https://peaceful-tapioca-c9ada4.netlify.app',
       'https://calcompit-ros.netlify.app',
       'https://ros-4hr.pages.dev',
-      'https://ros-4hr.pages.dev'
+      'http://10.13.12.36',
+      'https://10.13.12.36'
     ];
+    
+    // Allow all 10.13.x.x IP addresses
+    if (origin.startsWith('http://10.13.') || origin.startsWith('https://10.13.')) {
+      return callback(null, true);
+    }
     
     if (allowedDomains.includes(origin)) {
       return callback(null, true);
@@ -155,6 +161,7 @@ const startServer = async () => {
     };
 
     const localIP = await getLocalIP();
+    const serverIP = '10.13.12.36'; // Fixed IP for network access
 
     // Create self-signed certificate for development
     try {
@@ -166,7 +173,7 @@ const startServer = async () => {
       https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 HTTPS Server running on port ${PORT}`);
         console.log(`📍 Health check: https://localhost:${PORT}/health`);
-        console.log(`🌐 API base URL: https://${localIP}:${PORT}/api`);
+        console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
         console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
         if (!dbConnected) {
           console.log(`⚠️ Demo mode: Update .env with correct database settings`);
@@ -184,7 +191,7 @@ const startServer = async () => {
              // Generate self-signed certificate using Node.js
        const { execSync } = await import('child_process');
       try {
-        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=localhost"`, { stdio: 'inherit' });
+        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=10.13.12.36"`, { stdio: 'inherit' });
         
         // Retry with new certificate
         const options = {
@@ -195,7 +202,7 @@ const startServer = async () => {
         https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
           console.log(`🚀 HTTPS Server running on port ${PORT}`);
           console.log(`📍 Health check: https://localhost:${PORT}/health`);
-          console.log(`🌐 API base URL: https://${localIP}:${PORT}/api`);
+          console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
           console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
           if (!dbConnected) {
             console.log(`⚠️ Demo mode: Update .env with correct database settings`);
@@ -205,7 +212,7 @@ const startServer = async () => {
         console.error('❌ Failed to generate SSL certificate. Please install OpenSSL or use mkcert.');
         console.error('📝 Manual SSL setup required:');
         console.error('   1. Install OpenSSL for Windows');
-        console.error('   2. Run: openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=localhost"');
+        console.error('   2. Run: openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=10.13.12.36"');
         process.exit(1);
       }
     }
