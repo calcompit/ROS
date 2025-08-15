@@ -32,8 +32,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     // Get API base URL from environment or use default
     const apiUrl = import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net';
     
-    // Use Tailscale tunnel URL
-    const finalApiUrl = apiUrl;
+    // Use Tailscale tunnel URL (remove /api for WebSocket)
+    const finalApiUrl = apiUrl.replace('/api', '');
     
     const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
     
