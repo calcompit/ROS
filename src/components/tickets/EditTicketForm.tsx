@@ -13,9 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface EditTicketFormProps {
   ticket: Ticket;
-  onSave: (updatedTicket: Ticket) => void;
+  onSave: (updatedTicket: Ticket) => Promise<void>;
   onCancel: () => void;
-  onDelete: (orderNo: string | number) => void;
+  onDelete: (orderNo: string | number) => Promise<void>;
 }
 
 const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCancel, onDelete }) => {
@@ -74,6 +74,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         rootcause: formData.rootcause,
         status: formData.status,
         emprepair: formData.emp_repair,
+        device_type: formData.deviceType,  // เพิ่ม device_type
         items: formData.items,
         action: formData.action,
         notes: formData.notes
@@ -91,7 +92,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
             forceRedirectToError();
           }, 2000);
         } else {
-          onSave(response.data);
+          await onSave(response.data);
           toast({
             title: "Repair order updated successfully!",
             description: `Order ${ticket.order_no} has been updated.`,

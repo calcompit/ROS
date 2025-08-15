@@ -39,6 +39,8 @@ interface TicketCardProps {
 const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false }: TicketCardProps) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { isAdmin } = useAuth();
 
   // Helper functions for display names and formatting
@@ -124,13 +126,27 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
     return new Date(dateString).toLocaleString();
   };
 
-  const handleTicketSave = (updatedTicket: Ticket) => {
-    onTicketUpdate?.(updatedTicket);
-    setIsEditing(false);
+  const handleTicketSave = async (updatedTicket: Ticket) => {
+    setIsSaving(true);
+    try {
+      onTicketUpdate?.(updatedTicket);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEditCancel = () => {
     setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onTicketDelete?.(ticket.order_no);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Auto-open dialog when ticket is highlighted from notification
@@ -425,18 +441,20 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                   type="submit" 
                   className="flex-1"
                   form="edit-ticket-form"
+                  disabled={isSaving}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
                 <Button 
                   type="button" 
                   variant="destructive" 
-                  onClick={() => onTicketDelete && onTicketDelete(ticket.order_no)}
+                  onClick={handleDelete}
                   className="flex-1"
+                  disabled={isDeleting}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {isDeleting ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             ) : (
