@@ -45,8 +45,15 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
-                  <div className="flex items-center gap-4">
-            <MobileNav ticketCount={ticketCount} />
+                          <div className="flex items-center gap-4">
+          <MobileNav ticketCount={ticketCount} />
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+                IT ROS
+              </h1>
+              <p className="text-xs lg:text-sm text-muted-foreground">Equipment Management Dashboard</p>
+            </div>
             <div className="flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -59,6 +66,7 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
               </div>
             </div>
           </div>
+        </div>
 
 
 

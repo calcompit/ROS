@@ -75,11 +75,14 @@ app.use(cors({
       'https://calcompit-ros.netlify.app',
       'https://ros-4hr.pages.dev',
       'http://10.13.12.36',
-      'https://10.13.12.36'
+      'https://10.13.12.36',
+      'http://10.51.109.19',
+      'https://10.51.109.19'
     ];
     
-    // Allow all 10.13.x.x IP addresses
-    if (origin.startsWith('http://10.13.') || origin.startsWith('https://10.13.')) {
+    // Allow all 10.13.x.x and 10.51.x.x IP addresses
+    if (origin.startsWith('http://10.13.') || origin.startsWith('https://10.13.') ||
+        origin.startsWith('http://10.51.') || origin.startsWith('https://10.51.')) {
       return callback(null, true);
     }
     
@@ -161,7 +164,7 @@ const startServer = async () => {
     };
 
     const localIP = await getLocalIP();
-    const serverIP = '10.13.12.36'; // Fixed IP for network access
+    const serverIP = '10.51.109.19'; // Fixed IP for network access
 
     // Create self-signed certificate for development
     try {
@@ -191,7 +194,7 @@ const startServer = async () => {
              // Generate self-signed certificate using Node.js
        const { execSync } = await import('child_process');
       try {
-        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=10.13.12.36"`, { stdio: 'inherit' });
+        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=10.51.109.19"`, { stdio: 'inherit' });
         
         // Retry with new certificate
         const options = {
