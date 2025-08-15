@@ -469,7 +469,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="pl-10"
               />
             </div>
-            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 flex-wrap">
+            <div className="grid grid-cols-5 sm:flex sm:flex-row gap-1 sm:gap-3 flex-wrap">
               <Button
                 variant={statusFilter === 'all' ? 'default' : 'outline'}
                 size="default"

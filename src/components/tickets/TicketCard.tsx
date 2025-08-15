@@ -236,19 +236,23 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       </Card>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditing 
-                ? "Update repair order information (Admin access)" 
-                : `Complete information about repair order for ${ticket.dept}`}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0">
+          {/* Header - Fixed */}
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+            <DialogHeader>
+              <DialogTitle>
+                {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditing 
+                  ? "Update repair order information (Admin access)" 
+                  : `Complete information about repair order for ${ticket.dept}`}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-6">
+          {/* Body - Scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             {isEditing ? (
               <EditTicketForm 
                 ticket={ticket}
@@ -360,7 +364,13 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 pt-4">
+              </>
+            )}
+          </div>
+
+          {/* Footer - Fixed */}
+          <div className="sticky bottom-0 z-10 bg-background border-t px-6 py-4">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button variant="outline" className="flex-1">
                 Download Report
               </Button>
@@ -378,8 +388,6 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 </Button>
               )}
             </div>
-              </>
-            )}
           </div>
         </DialogContent>
       </Dialog>
