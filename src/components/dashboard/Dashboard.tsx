@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight, List, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -477,7 +477,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">All Status</span>
-                <span className="sm:hidden">All</span>
+                <span className="sm:hidden flex items-center justify-center">
+                  <List className="h-4 w-4" />
+                </span>
                 ({tickets.length})
               </Button>
               <Button
@@ -487,7 +489,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Pending</span>
-                <span className="sm:hidden">Pend</span>
+                <span className="sm:hidden flex items-center justify-center">
+                  <Clock className="h-4 w-4" />
+                </span>
                 ({tickets.filter(t => t.status === 'pending').length})
               </Button>
               <Button
@@ -497,7 +501,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">In Progress</span>
-                <span className="sm:hidden">Prog</span>
+                <span className="sm:hidden flex items-center justify-center">
+                  <Loader2 className="h-4 w-4" />
+                </span>
                 ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
               <Button
@@ -507,7 +513,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Completed</span>
-                <span className="sm:hidden">Done</span>
+                <span className="sm:hidden flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4" />
+                </span>
                 ({tickets.filter(t => t.status === 'completed').length})
               </Button>
               <Button
@@ -517,7 +525,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 <span className="hidden sm:inline">Cancelled</span>
-                <span className="sm:hidden">Cancel</span>
+                <span className="sm:hidden flex items-center justify-center">
+                  <XCircle className="h-4 w-4" />
+                </span>
                 ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
             </div>

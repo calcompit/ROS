@@ -239,19 +239,24 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
         <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0">
           {/* Header - Fixed */}
           <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 relative">
-            <DialogHeader className="text-center">
-              <DialogTitle>
-                {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
-              </DialogTitle>
-            </DialogHeader>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsDetailOpen(false)}
-              className="absolute top-4 right-4 h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex-1"></div>
+              <DialogHeader className="text-center flex-1">
+                <DialogTitle>
+                  {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsDetailOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Body - Scrollable */}
