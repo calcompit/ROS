@@ -32,9 +32,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     // Get API base URL from environment or use default
     const apiUrl = import.meta.env.VITE_API_URL || 'http://10.51.101.49:3001';
     
-    // Fallback to localhost for development
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const finalApiUrl = isLocalhost ? 'http://localhost:3001' : apiUrl;
+    // Use Windows machine IP for development
+    const finalApiUrl = 'http://10.51.101.49:3001';
     
     const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
     

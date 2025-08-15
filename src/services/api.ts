@@ -1,15 +1,8 @@
 // API Service for connecting to backend
 // Try to detect local IP automatically, fallback to environment variable or default
 const getLocalIP = () => {
-  // Check if we're in development mode
-  if (import.meta.env.DEV) {
-    // Try to get the current hostname/IP from the browser
-    const hostname = window.location.hostname;
-    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `http://${hostname}:3001/api`;
-    }
-  }
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  // Use Windows machine IP for development
+  return import.meta.env.VITE_API_URL || 'http://10.51.101.49:3001/api';
 };
 
 const API_BASE_URL = getLocalIP();
