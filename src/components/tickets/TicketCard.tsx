@@ -236,9 +236,9 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       </Card>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0 overflow-hidden">
           {/* Header - Fixed */}
-          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 relative">
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 relative rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex-1"></div>
               <DialogHeader className="text-center flex-1">
@@ -384,7 +384,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
           </div>
 
           {/* Footer - Fixed */}
-          <div className="mt-auto bg-background border-t px-6 py-4">
+          <div className="mt-auto bg-background border-t px-6 py-4 rounded-b-lg">
             {isEditing ? (
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button 

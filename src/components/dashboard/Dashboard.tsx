@@ -478,7 +478,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               >
                 <span className="hidden sm:inline">All Status</span>
                 <span className="sm:hidden flex items-center justify-center">
-                  <List className="h-4 w-4" />
+                  <List className="h-4 w-4 text-blue-600" />
                 </span>
                 ({tickets.length})
               </Button>
@@ -490,7 +490,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               >
                 <span className="hidden sm:inline">Pending</span>
                 <span className="sm:hidden flex items-center justify-center">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 text-amber-500" />
                 </span>
                 ({tickets.filter(t => t.status === 'pending').length})
               </Button>
@@ -502,7 +502,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               >
                 <span className="hidden sm:inline">In Progress</span>
                 <span className="sm:hidden flex items-center justify-center">
-                  <Loader2 className="h-4 w-4" />
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                 </span>
                 ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
@@ -514,7 +514,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               >
                 <span className="hidden sm:inline">Completed</span>
                 <span className="sm:hidden flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                 </span>
                 ({tickets.filter(t => t.status === 'completed').length})
               </Button>
@@ -526,7 +526,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               >
                 <span className="hidden sm:inline">Cancelled</span>
                 <span className="sm:hidden flex items-center justify-center">
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-4 w-4 text-red-500" />
                 </span>
                 ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
