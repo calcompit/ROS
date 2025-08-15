@@ -231,26 +231,26 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      {/* Navigation Tabs */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      {/* Navigation Tabs - Hidden on Mobile */}
+      <div className="hidden sm:flex flex-row gap-2">
         <Button
           variant={activeTab === 'overview' ? 'default' : 'outline'}
           onClick={() => handleTabChange('overview')}
-          className="flex-1 sm:flex-none"
+          className="flex-none"
         >
           Overview
         </Button>
         <Button
           variant={activeTab === 'tickets' ? 'default' : 'outline'}
           onClick={() => handleTabChange('tickets')}
-          className="flex-1 sm:flex-none"
+          className="flex-none"
         >
           My Tickets ({tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length})
         </Button>
         <Button
           variant={activeTab === 'new-ticket' ? 'default' : 'outline'}
           onClick={() => handleTabChange('new-ticket')}
-          className="flex-1 sm:flex-none"
+          className="flex-none"
         >
           New Order
         </Button>
