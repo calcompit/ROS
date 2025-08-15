@@ -476,7 +476,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 onClick={() => setStatusFilter('all')}
                 className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                All Status ({tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length})
+                <span className="hidden sm:inline">All Status</span>
+                <span className="sm:hidden">ทั้งหมด</span>
+                ({tickets.length})
               </Button>
               <Button
                 variant={statusFilter === 'pending' ? 'default' : 'outline'}
@@ -484,7 +486,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 onClick={() => setStatusFilter('pending')}
                 className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                Pending ({tickets.filter(t => t.status === 'pending').length})
+                <span className="hidden sm:inline">Pending</span>
+                <span className="sm:hidden">รอ</span>
+                ({tickets.filter(t => t.status === 'pending').length})
               </Button>
               <Button
                 variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
@@ -492,7 +496,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 onClick={() => setStatusFilter('in-progress')}
                 className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                In Progress ({tickets.filter(t => t.status === 'in-progress').length})
+                <span className="hidden sm:inline">In Progress</span>
+                <span className="sm:hidden">กำลัง</span>
+                ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
               <Button
                 variant={statusFilter === 'completed' ? 'default' : 'outline'}
@@ -500,7 +506,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 onClick={() => setStatusFilter('completed')}
                 className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                Completed ({tickets.filter(t => t.status === 'completed').length})
+                <span className="hidden sm:inline">Completed</span>
+                <span className="sm:hidden">เสร็จ</span>
+                ({tickets.filter(t => t.status === 'completed').length})
               </Button>
               <Button
                 variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
@@ -508,7 +516,9 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 onClick={() => setStatusFilter('cancelled')}
                 className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                Cancelled ({tickets.filter(t => t.status === 'cancelled').length})
+                <span className="hidden sm:inline">Cancelled</span>
+                <span className="sm:hidden">ยก</span>
+                ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
             </div>
           </div>
