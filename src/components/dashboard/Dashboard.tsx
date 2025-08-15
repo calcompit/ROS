@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight, List, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight, List, Loader2, CheckCircle, XCircle, BarChart3, PieChart, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import StatsCard from './StatsCard';
+import ChartCard from './ChartCard';
 import TicketCard, { Ticket as TicketType } from '../tickets/TicketCard';
 import NewRepairOrderForm from '../tickets/NewRepairOrderForm';
 import { repairOrdersApi, RepairOrder } from '@/services/api';
@@ -263,15 +264,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm text-muted-foreground">
-                  {wsConnected ? '🟢 Realtime' : '🔴 Offline'}
-                </span>
-              </div>
-            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h2>
             <p className="text-muted-foreground">Here's an overview of your repair tickets and system status.</p>
           </div>
 
@@ -426,6 +419,34 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 className={statusFilter === 'completed' ? 'ring-2 ring-success/20 shadow-lg' : ''}
               />
             </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <ChartCard
+              title="Status Distribution"
+              data={[
+                { label: 'Pending', value: stats.pending, color: 'hsl(45, 93%, 47%)' },
+                { label: 'In Progress', value: stats.inProgress, color: 'hsl(221, 83%, 53%)' },
+                { label: 'Completed', value: stats.completed, color: 'hsl(142, 76%, 36%)' },
+                { label: 'Cancelled', value: stats.cancelled, color: 'hsl(0, 84%, 60%)' }
+              ]}
+              icon={PieChart}
+              type="pie"
+            />
+            <ChartCard
+              title="Monthly Trends"
+              data={[
+                { label: 'Jan', value: 12 },
+                { label: 'Feb', value: 19 },
+                { label: 'Mar', value: 15 },
+                { label: 'Apr', value: 22 },
+                { label: 'May', value: 18 },
+                { label: 'Jun', value: 25 }
+              ]}
+              icon={BarChart3}
+              type="bar"
+            />
           </div>
 
           {/* All Orders for Period */}
