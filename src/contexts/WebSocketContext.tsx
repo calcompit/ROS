@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useToast } from '@/hooks/use-toast';
+import { config } from '../config/environment.js';
 
 interface WebSocketContextType {
   socket: Socket | null;
@@ -29,13 +30,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get API base URL from environment or use default
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://10.51.101.49:3001';
-    
-    // Use Windows IP address for development (backend runs on Windows via SSH)
-    const finalApiUrl = apiUrl.replace('/api', '');
-    
-    const wsUrl = finalApiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    const wsUrl = config.wsUrl;
     
     console.log('🔌 Connecting to WebSocket:', wsUrl);
     
@@ -46,7 +41,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       rejectUnauthorized: false,
-      secure: false
+      secure: false,
+      withCredentials: false,
+      extraHeaders: {
+        'Access-Control-Allow-Origin': '*'
+      }
     });
 
     newSocket.on('connect', () => {

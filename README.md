@@ -1,129 +1,68 @@
-# TechFix Pro - Repair Order Management System
+# FixIt Bright Dashboard
 
-## Project Overview
+ระบบจัดการซ่อมบำรุงอุปกรณ์แบบ Real-time ระหว่าง MacBook (Frontend) และ Windows (Backend)
 
-TechFix Pro is a comprehensive repair order management system designed for IT departments and technical service teams. The system provides a modern, user-friendly interface for managing computer repair orders, tracking status, and maintaining detailed records.
+## 🚀 Quick Start
 
-## Features
+### 1. Setup Tailscale
+- ติดตั้ง Tailscale บนทั้ง MacBook และ Windows
+- เชื่อมต่อเข้ากับ Tailscale network เดียวกัน
 
-- **Dashboard Overview**: Real-time statistics and repair order summaries
-- **Role-Based Access Control**: Admin users can edit tickets, regular users can view only
-- **Repair Order Management**: Create, edit, delete, and track repair orders
-- **Status Tracking**: Monitor repair progress with visual status indicators
-- **Priority Management**: Set and track priority levels for urgent repairs
-- **Department Integration**: Connect with existing department structures
-- **Database Integration**: Full SQL Server integration for data persistence
+### 2. Setup SSH (One-time)
+```bash
+# MacBook
+chmod +x setup-ssh-mac.sh
+./setup-ssh-mac.sh
 
-## Technology Stack
-
-This project is built with:
-
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Components**: shadcn/ui, Tailwind CSS
-- **Backend**: Node.js, Express.js
-- **Database**: SQL Server
-- **Authentication**: JWT-based admin authentication
-- **Deployment**: Netlify (Frontend), Local Backend
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+ installed
-- SQL Server database access
-- Git
-
-### Installation
-
-```sh
-# Clone the repository
-git clone https://github.com/calcompit/ROS.git
-
-# Navigate to project directory
-cd ROS
-
-# Install dependencies
-npm install
-
-# Install backend dependencies
-cd backend
-npm install
-cd ..
-
-# Start development server
-npm run dev
+# Windows (Run as Administrator)
+setup-ssh-windows.bat
 ```
 
-### Backend Setup
+### 3. Setup Environment
+```bash
+# MacBook
+cp env.macbook.example .env.local
 
-```sh
-# Navigate to backend directory
-cd backend
-
-# Create .env file with database credentials
-cp .env.example .env
-
-# Edit .env with your database settings
-# DB_SERVER=your_server_ip
-# DB_USER=your_username
-# DB_PASSWORD=your_password
-# DB_NAME=your_database_name
-
-# Start backend server
-npm start
+# Windows
+copy env.windows.example .env
 ```
 
-## Environment Variables
+### 4. Start Development
+```bash
+# MacBook - Frontend
+chmod +x start-frontend-mac.sh
+./start-frontend-mac.sh
 
-### Frontend (.env)
-```
-VITE_API_URL=http://localhost:3001/api
-```
-
-### Backend (.env)
-```
-DB_SERVER=10.53.64.205
-DB_USER=ccet
-DB_PASSWORD=!qaz7410
-DB_NAME=mes
-DB_PORT=1433
-JWT_SECRET=your_jwt_secret
+# Windows - Backend
+auto-pull-windows.bat
 ```
 
-## Database Schema
+## 📁 Scripts
 
-The system integrates with existing SQL Server tables:
+### MacBook Scripts
+- `start-frontend-mac.sh` - รัน Frontend ที่ port 8081
+- `sync-to-windows.sh` - Push code ไป Git และ sync ไป Windows
+- `setup-ssh-mac.sh` - ตั้งค่า SSH connection
+- `start-backend-windows-ssh.sh` - รัน Backend บน Windows ผ่าน SSH
 
-- `TBL_IT_PCMAINTENANCE`: Main repair orders table
-- `TBL_IT_PCSUBJECT`: Issue types/subjects
-- `TBL_IP_DEPT`: Department information
-- `TBL_IT_MAINTAINUSER`: Admin user credentials
+### Windows Scripts
+- `start-backend-windows.bat` - รัน Backend ที่ port 3001
+- `run-backend-windows.bat` - รัน Backend แบบ background
+- `auto-pull-windows.bat` - Pull code จาก Git และ restart backend
+- `setup-ssh-windows.bat` - ตั้งค่า SSH server
 
-## Deployment
+## 🔄 Development Workflow
 
-### Frontend (Netlify)
-1. Connect GitHub repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `dist`
-4. Configure environment variables
+1. **แก้ไข Frontend** (MacBook) → Auto-reload ที่ port 8081
+2. **แก้ไข Backend** (MacBook) → รัน `./sync-to-windows.sh`
+3. **แก้ไข Backend** (Windows) → รัน `auto-pull-windows.bat`
 
-### Backend (Local/Server)
-1. Deploy backend to your server
-2. Configure CORS for frontend domain
-3. Set up SSL certificates for HTTPS
-4. Configure firewall rules
+## 📖 Documentation
 
-## Contributing
+ดูรายละเอียดเพิ่มเติมได้ที่ [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+## 🌐 URLs
 
-## License
-
-This project is proprietary software developed for internal use.
-
-## Support
-
-For technical support or questions, please contact the development team.
+- **Frontend**: http://localhost:8081
+- **Backend API**: https://10.51.101.49:3001/api
+- **Backend Health**: https://10.51.101.49:3001/health

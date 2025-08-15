@@ -1,0 +1,25 @@
+# Windows Backend Environment Variables
+# Copy this file to backend/.env and modify as needed
+
+NODE_ENV=development
+PORT=3001
+TAILSCALE_IP=10.51.101.49
+
+# Database Configuration (SQL Server)
+DB_SERVER=10.53.64.205
+DB_USER=ccet
+DB_PASSWORD=!qaz7410
+DB_NAME=mes
+DB_PORT=1433
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=24h
+
+# SSL Configuration
+SSL_ENABLED=true
+SSL_KEY_PATH=./ssl/key.pem
+SSL_CERT_PATH=./ssl/cert.pem
+
+# CORS Configuration
+ALLOWED_ORIGINS=http://localhost:8081,http://localhost:8082,https://10.51.101.49:3001

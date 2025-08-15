@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -182,8 +183,11 @@ const startServer = async () => {
 
       const httpsServer = https.createServer(options, app);
       
-      // Create Socket.IO server
-      const io = new Server(httpsServer, {
+      // Create HTTP server for WebSocket
+      const httpServer = http.createServer();
+      
+      // Create Socket.IO server on HTTP
+      const io = new Server(httpServer, {
         cors: {
           origin: "*",
           methods: ["GET", "POST"]
@@ -220,11 +224,17 @@ const startServer = async () => {
         console.log(`🚀 HTTPS Server running on port ${PORT}`);
         console.log(`📍 Health check: https://localhost:${PORT}/health`);
         console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
-        console.log(`🔌 WebSocket enabled for real-time updates`);
         console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
         if (!dbConnected) {
           console.log(`⚠️ Demo mode: Update .env with correct database settings`);
         }
+      });
+      
+      // Start HTTP server for WebSocket on port 3002
+      const wsPort = PORT + 1;
+      httpServer.listen(wsPort, '0.0.0.0', () => {
+        console.log(`🔌 WebSocket Server running on port ${wsPort}`);
+        console.log(`🔌 WebSocket URL: ws://${serverIP}:${wsPort}`);
       });
     } catch (sslError) {
       console.error('❌ SSL certificate not found. Creating new one...');
@@ -248,8 +258,11 @@ const startServer = async () => {
 
         const httpsServer = https.createServer(options, app);
         
-        // Create Socket.IO server
-        const io = new Server(httpsServer, {
+        // Create HTTP server for WebSocket
+        const httpServer = http.createServer();
+        
+        // Create Socket.IO server on HTTP
+        const io = new Server(httpServer, {
           cors: {
             origin: "*",
             methods: ["GET", "POST"]
@@ -286,11 +299,17 @@ const startServer = async () => {
           console.log(`🚀 HTTPS Server running on port ${PORT}`);
           console.log(`📍 Health check: https://localhost:${PORT}/health`);
           console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
-          console.log(`🔌 WebSocket enabled for real-time updates`);
           console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
           if (!dbConnected) {
             console.log(`⚠️ Demo mode: Update .env with correct database settings`);
           }
+        });
+        
+        // Start HTTP server for WebSocket on port 3002
+        const wsPort = PORT + 1;
+        httpServer.listen(wsPort, '0.0.0.0', () => {
+          console.log(`🔌 WebSocket Server running on port ${wsPort}`);
+          console.log(`🔌 WebSocket URL: ws://${serverIP}:${wsPort}`);
         });
       } catch (genError) {
         console.error('❌ Failed to generate SSL certificate. Please install OpenSSL or use mkcert.');

@@ -1,11 +1,7 @@
 // API Service for connecting to backend
-// Try to detect local IP automatically, fallback to environment variable or default
-const getLocalIP = () => {
-  // Use Windows IP address for development (backend runs on Windows via SSH)
-  return import.meta.env.VITE_API_URL || 'https://10.51.101.49:3001/api';
-};
+import { config, getApiUrl } from '../config/environment.js';
 
-const API_BASE_URL = getLocalIP();
+const API_BASE_URL = config.apiUrl;
 
 export default API_BASE_URL;
 
