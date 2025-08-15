@@ -85,6 +85,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         name: formData.name,
         dept: formData.dept,
         emp: formData.emp,
+        device_type: formData.deviceType,
         items: '',
         notes: formData.notes,
         rootcause: formData.rootcause,

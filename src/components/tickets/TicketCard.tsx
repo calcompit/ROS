@@ -14,6 +14,7 @@ export interface Ticket {
   name: string;                  // PC/Device name
   dept: string;                  // Department
   emp: string;                   // Employee who reported
+  device_type?: string;          // Device type from database
   insert_date: string;           // Creation date
   items?: string;                // Equipment/items details
   rootcause?: string;            // Root cause analysis
@@ -23,7 +24,7 @@ export interface Ticket {
   status: string;                // Status from database
   
   // Optional display fields
-  deviceType?: string;           // Device type (Laptop, PC, etc.)
+  deviceType?: string;           // Device type (Laptop, PC, etc.) - for compatibility
   notes?: string;                // Additional notes
   priority?: 'low' | 'medium' | 'high' | 'urgent';
 }
@@ -56,6 +57,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       last_date: 'Last Updated',
       status: 'Status',
       deviceType: 'Device Type',
+      device_type: 'Device Type',
       notes: 'Notes',
       priority: 'Priority'
     };
@@ -367,10 +369,10 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('insert_date')}</label>
                 <p className="text-foreground mt-1">{formatDate(ticket.insert_date)}</p>
               </div>
-              {ticket.deviceType && (
+              {(ticket.device_type || ticket.deviceType) && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">{getDisplayName('deviceType')}</label>
-                  <p className="text-foreground mt-1">{ticket.deviceType}</p>
+                  <p className="text-foreground mt-1">{ticket.device_type || ticket.deviceType}</p>
                 </div>
               )}
               <div>

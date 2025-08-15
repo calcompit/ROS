@@ -11,6 +11,7 @@ const sampleData = [
     name: 'PC-IT-001',
     dept: 'IT Department',
     emp: 'John Doe',
+    device_type: 'Laptop',
     insert_date: '2024-01-15T10:30:00Z',
     items: 'Dell Latitude 5520, Intel Graphics, 16GB RAM, Windows 11 Pro',
     rootcause: 'Graphics driver compatibility issue with updated Windows display drivers',
@@ -24,6 +25,7 @@ const sampleData = [
     name: 'PRINTER-ACC-02',
     dept: 'Accounting',
     emp: 'Jane Smith',
+    device_type: 'Printer',
     insert_date: '2024-01-14T09:15:00Z',
     items: 'HP LaserJet Pro 4050dn, Network Connection, Ethernet',
     rootcause: '',
@@ -37,6 +39,7 @@ const sampleData = [
     name: 'PC-HR-015',
     dept: 'Human Resources',
     emp: 'Mike Johnson',
+    device_type: 'Desktop',
     insert_date: '2024-01-10T11:45:00Z',
     items: 'Dell OptiPlex 7090, 32GB RAM, 1TB SSD, Intel Core i7',
     rootcause: 'Failed RAM module causing boot failure, PSU voltage instability',
@@ -186,6 +189,7 @@ router.post('/', async (req, res) => {
       name,
       dept,
       emp,
+      device_type,
       items,
       rootcause,
       emprepair
@@ -209,6 +213,7 @@ router.post('/', async (req, res) => {
         name,
         dept,
         emp,
+        device_type: device_type || '',
         items: items || '',
         rootcause: rootcause || '',
         action: '',
@@ -231,8 +236,8 @@ router.post('/', async (req, res) => {
 
     const query = `
       INSERT INTO dbo.TBL_IT_PCMAINTENANCE 
-      (subject, name, dept, emp, items, rootcause, emprepair, status, insert_date)
-      VALUES (@subject, @name, @dept, @emp, @items, @rootcause, @emprepair, 'pending', @insert_date)
+      (subject, name, dept, emp, device_type, items, rootcause, emprepair, status, insert_date)
+      VALUES (@subject, @name, @dept, @emp, @device_type, @items, @rootcause, @emprepair, 'pending', @insert_date)
     `;
     
     const params = { 
@@ -240,6 +245,7 @@ router.post('/', async (req, res) => {
       name, 
       dept, 
       emp, 
+      device_type: device_type || '', 
       items: items || '', 
       rootcause: rootcause || '', 
       emprepair: emprepair || '',
@@ -288,7 +294,7 @@ router.put('/:orderNo', async (req, res) => {
 
     const allowedFields = [
       'subject', 'rootcause', 'action', 'emprepair', 'status', 
-      'items', 'notes'
+      'items', 'notes', 'device_type'
     ];
 
     if (!getPool()) {

@@ -9,6 +9,7 @@ export interface RepairOrder {
   name: string;
   dept: string;
   emp: string;
+  device_type?: string;
   insert_date: string;
   items?: string;
   rootcause?: string;
