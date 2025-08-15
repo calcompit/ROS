@@ -85,7 +85,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id="edit-ticket-form" onSubmit={handleSubmit} className="space-y-4">
       {/* Read-only Basic Information */}
       <div className="grid gap-4 md:grid-cols-3 p-3 bg-muted/50 rounded-lg">
         <div className="space-y-1">
@@ -229,36 +229,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 pt-4">
-        <Button 
-          type="submit" 
-          className="flex-1"
-          disabled={isSubmitting}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
-        </Button>
-        <Button 
-          type="button" 
-          variant="outline" 
-          className="flex-1"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          <X className="h-4 w-4 mr-2" />
-          Cancel
-        </Button>
-        <Button 
-          type="button" 
-          variant="destructive" 
-          onClick={() => onDelete && onDelete(ticket.order_no)}
-          disabled={isSubmitting || !onDelete}
-          className="flex-1"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </Button>
-      </div>
+
     </form>
   );
 };

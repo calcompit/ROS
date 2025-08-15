@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2 } from 'lucide-react';
+import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -238,22 +238,20 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0">
           {/* Header - Fixed */}
-          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
-            <div className="flex items-start justify-between">
-              <DialogHeader className="flex-1">
-                <DialogTitle>
-                  {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
-                </DialogTitle>
-              </DialogHeader>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsDetailOpen(false)}
-                className="h-8 w-8 p-0 ml-4"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 relative">
+            <DialogHeader className="text-center">
+              <DialogTitle>
+                {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
+              </DialogTitle>
+            </DialogHeader>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsDetailOpen(false)}
+              className="absolute top-4 right-4 h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Body - Scrollable */}
@@ -392,6 +390,14 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  form="edit-ticket-form"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
                 </Button>
                 <Button 
                   type="button" 
