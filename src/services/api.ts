@@ -163,8 +163,8 @@ export const subjectsApi = {
 
 // Departments API
 export const departmentsApi = {
-  getAll: async (): Promise<ApiResponse<{ DEPT_NAME: string }[]>> => {
-    return apiRequest<{ DEPT_NAME: string }[]>('/departments');
+  getAll: async (): Promise<ApiResponse<{ dept: string }[]>> => {
+    return apiRequest<{ dept: string }[]>('/departments');
   },
 };
 

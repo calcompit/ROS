@@ -123,15 +123,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
               <SelectValue placeholder="Select device type" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="Computer">Computer</SelectItem>
               <SelectItem value="Laptop">Laptop</SelectItem>
-              <SelectItem value="Desktop">Desktop Computer</SelectItem>
-              <SelectItem value="Tablet">Tablet</SelectItem>
-              <SelectItem value="Smartphone">Smartphone</SelectItem>
-              <SelectItem value="Printer">Printer</SelectItem>
-              <SelectItem value="Scanner">Scanner</SelectItem>
-              <SelectItem value="Monitor">Monitor</SelectItem>
-              <SelectItem value="Network Equipment">Network Equipment</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="Order">Order</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -139,12 +133,33 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
 
       <div className="space-y-2">
         <Label htmlFor="edit-items">Equipment/Items Details</Label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {['RAM', 'POWERSUPPLY', 'HDD', 'SSD', 'MOTHERBOARD', 'CPU', 'GPU', 'NETWORK', 'KEYBOARD', 'MOUSE'].map((item) => (
+            <Button
+              key={item}
+              type="button"
+              variant={formData.items?.includes(item) ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                const currentItems = formData.items ? formData.items.split(', ').filter(i => i.trim()) : [];
+                const newItems = currentItems.includes(item) 
+                  ? currentItems.filter(i => i !== item)
+                  : [...currentItems, item];
+                setFormData(prev => ({ ...prev, items: newItems.join(', ') }));
+              }}
+              className="text-xs"
+            >
+              {item}
+            </Button>
+          ))}
+        </div>
         <Textarea
           id="edit-items"
-          placeholder="Detailed information about the equipment (model, specifications, etc.)"
+          placeholder="Selected items will appear here..."
           value={formData.items}
           onChange={(e) => setFormData(prev => ({ ...prev, items: e.target.value }))}
-          rows={3}
+          rows={2}
+          readOnly
         />
       </div>
 

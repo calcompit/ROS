@@ -18,7 +18,7 @@ interface NewRepairOrderFormProps {
 const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjects, setSubjects] = useState<{ subject: string }[]>([]);
-  const [departments, setDepartments] = useState<{ DEPT_NAME: string }[]>([]);
+  const [departments, setDepartments] = useState<{ dept: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { forceRedirectToError } = useDatabase();
@@ -193,15 +193,9 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                   <SelectValue placeholder="Select device type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="Computer">Computer</SelectItem>
                   <SelectItem value="Laptop">Laptop</SelectItem>
-                  <SelectItem value="Desktop">Desktop Computer</SelectItem>
-                  <SelectItem value="Tablet">Tablet</SelectItem>
-                  <SelectItem value="Smartphone">Smartphone</SelectItem>
-                  <SelectItem value="Printer">Printer</SelectItem>
-                  <SelectItem value="Scanner">Scanner</SelectItem>
-                  <SelectItem value="Monitor">Monitor</SelectItem>
-                  <SelectItem value="Network Equipment">Network Equipment</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Order">Order</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -237,8 +231,8 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                     <SelectItem value="loading" disabled>Loading departments...</SelectItem>
                   ) : departments.length > 0 ? (
                     departments.map((dept, index) => (
-                      <SelectItem key={index} value={dept.DEPT_NAME}>
-                        {dept.DEPT_NAME}
+                      <SelectItem key={index} value={dept.dept}>
+                        {dept.dept}
                       </SelectItem>
                     ))
                   ) : (
