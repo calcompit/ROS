@@ -3,12 +3,16 @@ import { Menu, X, Home, Ticket, Plus, Search, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
-const MobileNav = () => {
+interface MobileNavProps {
+  ticketCount?: number;
+}
+
+const MobileNav = ({ ticketCount }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { icon: Home, label: 'Dashboard', action: () => window.location.hash = 'overview' },
-    { icon: Ticket, label: 'My Tickets', action: () => window.location.hash = 'tickets' },
+    { icon: Ticket, label: `My Tickets${ticketCount ? ` (${ticketCount})` : ''}`, action: () => window.location.hash = 'tickets' },
     { icon: Plus, label: 'New Ticket', action: () => window.location.hash = 'new-ticket' },
     { icon: Search, label: 'Search', action: () => {} },
     { icon: Settings, label: 'Settings', action: () => {} },

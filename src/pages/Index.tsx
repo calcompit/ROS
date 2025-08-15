@@ -4,6 +4,7 @@ import Dashboard from '@/components/dashboard/Dashboard';
 
 const Index = () => {
   const [dashboardKey, setDashboardKey] = useState(0);
+  const [ticketCount, setTicketCount] = useState<number>(0);
 
   const handleNotificationClick = (ticketId: string) => {
     // Force re-render Dashboard to trigger notification navigation
@@ -13,11 +14,15 @@ const Index = () => {
     window.location.hash = `tickets?highlight=${ticketId}`;
   };
 
+  const handleTicketCountUpdate = (count: number) => {
+    setTicketCount(count);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header onNotificationClick={handleNotificationClick} />
+      <Header onNotificationClick={handleNotificationClick} ticketCount={ticketCount} />
       <main className="max-w-7xl mx-auto">
-        <Dashboard key={dashboardKey} />
+        <Dashboard key={dashboardKey} onTicketCountUpdate={handleTicketCountUpdate} />
       </main>
     </div>
   );

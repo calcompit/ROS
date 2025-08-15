@@ -12,9 +12,10 @@ import { useDatabase } from '@/contexts/DatabaseContext';
 
 interface DashboardProps {
   initialTab?: 'overview' | 'tickets' | 'new-ticket';
+  onTicketCountUpdate?: (count: number) => void;
 }
 
-const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
+const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardProps = {}) => {
   // Parse hash from URL to determine active tab and highlight ticket
   const getInitialTab = () => {
     const hash = window.location.hash.replace('#', '');
@@ -96,6 +97,14 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
   useEffect(() => {
     fetchTickets();
   }, []);
+
+  // Update ticket count when tickets change
+  useEffect(() => {
+    if (onTicketCountUpdate) {
+      const activeTicketCount = tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length;
+      onTicketCountUpdate(activeTicketCount);
+    }
+  }, [tickets, onTicketCountUpdate]);
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -11,9 +11,10 @@ import { repairOrdersApi } from '@/services/api';
 
 interface HeaderProps {
   onNotificationClick?: (ticketId: string) => void;
+  ticketCount?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNotificationClick }) => {
+const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => {
   const { user, logout, isAdmin } = useAuth();
   const [dbStatus, setDbStatus] = useState<'connected' | 'demo' | 'error' | 'checking'>('checking');
   
@@ -43,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick }) => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
         <div className="flex items-center gap-4">
-          <MobileNav />
+          <MobileNav ticketCount={ticketCount} />
           <div className="hidden lg:block">
             <h1 className="text-2xl font-bold text-foreground">TechFix Pro</h1>
             <p className="text-sm text-muted-foreground">Equipment Management Dashboard</p>
