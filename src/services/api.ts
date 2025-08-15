@@ -6,10 +6,10 @@ const getLocalIP = () => {
     // Try to get the current hostname/IP from the browser
     const hostname = window.location.hostname;
     if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `https://${hostname}:3001/api`;
+      return `http://${hostname}:3001/api`;
     }
   }
-  return import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 };
 
 const API_BASE_URL = getLocalIP();
