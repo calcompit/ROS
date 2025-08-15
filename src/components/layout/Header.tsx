@@ -44,9 +44,9 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container flex h-16 items-center px-4 max-w-full">
-        {/* Left Section - Logo and Mobile Nav */}
-        <div className="flex items-center gap-4 flex-1">
+      <div className="container flex h-16 items-center justify-between px-4 max-w-full">
+        {/* Left Section - Logo, Search Bar, and Mobile Nav */}
+        <div className="flex items-center gap-4">
           <MobileNav ticketCount={ticketCount} />
           <div className="flex flex-col">
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
@@ -54,25 +54,23 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
             </h1>
             <p className="text-xs lg:text-sm text-muted-foreground">Equipment Management Dashboard</p>
           </div>
-        </div>
-
-        {/* Center Section - Search Bar */}
-        <div className="flex-1 flex justify-center">
-          <div className="hidden md:flex max-w-md w-full">
-            <div className="relative w-full">
+          
+          {/* Search Bar */}
+          <div className="hidden md:flex max-w-md ml-6">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tickets, equipment..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200 w-full"
+                className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200"
               />
             </div>
           </div>
         </div>
 
         {/* Right Section - Status and User */}
-        <div className="flex items-center gap-3 flex-1 justify-end">
+        <div className="flex items-center gap-3">
 
           {/* Database Status Indicator */}
           <div className="hidden sm:flex">
