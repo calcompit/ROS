@@ -229,7 +229,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         />
       </div>
 
-      <div className="flex gap-2 pt-4">
+      <div className="flex flex-col sm:flex-row gap-2 pt-4">
         <Button 
           type="submit" 
           className="flex-1"
@@ -253,6 +253,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
           variant="destructive" 
           onClick={() => onDelete(ticket.order_no)}
           disabled={isSubmitting}
+          className="flex-1"
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Delete

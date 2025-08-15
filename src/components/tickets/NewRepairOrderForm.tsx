@@ -119,7 +119,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
           dept: '',
           emp: '',
           deviceType: '',
-          items: '',
+          rootcause: '',
           notes: '',
           priority: 'medium'
         });
@@ -139,14 +139,14 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
   };
 
   return (
-    <Card className="shadow-card animate-fade-in">
-      <CardHeader>
+    <Card className="shadow-card animate-fade-in w-full max-w-4xl mx-auto">
+      <CardHeader className="p-4 sm:p-6">
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Plus className="h-5 w-5 text-primary" />
           Create New Repair Order
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

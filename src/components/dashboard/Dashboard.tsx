@@ -232,7 +232,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Button
           variant={activeTab === 'overview' ? 'default' : 'outline'}
           onClick={() => handleTabChange('overview')}
@@ -266,7 +266,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
 
           {/* Date and Period Filter */}
           <div className="bg-muted/30 rounded-lg p-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">Filter by Period:</span>
@@ -361,7 +361,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <div 
               className="cursor-pointer transition-all hover:shadow-md"
               onClick={() => setStatusFilter('all')}
@@ -428,7 +428,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 {filteredTicketsForStats.length} orders found
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTicketsForStats.map((ticket) => (
                 <TicketCard 
                   key={ticket.order_no} 
@@ -469,12 +469,12 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
               <Button
                 variant={statusFilter === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter('all')}
-                className="shadow-sm"
+                className="shadow-sm flex-1 sm:flex-none"
               >
                 All Status ({tickets.length})
               </Button>
@@ -482,7 +482,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 variant={statusFilter === 'pending' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter('pending')}
-                className="shadow-sm"
+                className="shadow-sm flex-1 sm:flex-none"
               >
                 Pending ({tickets.filter(t => t.status === 'pending').length})
               </Button>
@@ -490,7 +490,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter('in-progress')}
-                className="shadow-sm"
+                className="shadow-sm flex-1 sm:flex-none"
               >
                 In Progress ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
@@ -498,7 +498,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 variant={statusFilter === 'completed' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter('completed')}
-                className="shadow-sm"
+                className="shadow-sm flex-1 sm:flex-none"
               >
                 Completed ({tickets.filter(t => t.status === 'completed').length})
               </Button>
@@ -506,7 +506,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter('cancelled')}
-                className="shadow-sm"
+                className="shadow-sm flex-1 sm:flex-none"
               >
                 Cancelled ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
@@ -563,7 +563,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
 
           {/* Tickets Grid */}
           {!loading && !error && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTickets.map((ticket) => (
                 <TicketCard 
                   key={ticket.order_no} 
