@@ -47,32 +47,20 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
                   <div className="flex items-center gap-4">
             <MobileNav ticketCount={ticketCount} />
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-foreground lg:hidden">IT ROS</h1>
-                <p className="text-sm text-muted-foreground lg:hidden">Equipment Management Dashboard</p>
-                <div className="hidden lg:flex flex-col">
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
-                    IT ROS
-                  </h1>
-                  <p className="text-sm text-muted-foreground">Equipment Management Dashboard</p>
-                </div>
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tickets, equipment..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200"
+                />
               </div>
             </div>
           </div>
 
-        {/* Search Bar - Desktop Only */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tickets, equipment..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-200"
-            />
-          </div>
-        </div>
+
 
         <div className="flex items-center gap-3">
           {/* Database Status Indicator */}
