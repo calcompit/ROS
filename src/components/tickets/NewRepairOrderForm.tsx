@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Ticket } from './TicketCard';
-import { subjectsApi, departmentsApi, repairOrdersApi, equipmentApi } from '@/services/api';
+import { subjectsApi, departmentsApi, repairOrdersApi } from '@/services/api';
 import { useDatabase } from '@/contexts/DatabaseContext';
 
 interface NewRepairOrderFormProps {
@@ -19,7 +19,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjects, setSubjects] = useState<{ subject: string }[]>([]);
   const [departments, setDepartments] = useState<{ dept: string }[]>([]);
-  const [equipmentList, setEquipmentList] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { forceRedirectToError } = useDatabase();
@@ -30,7 +30,6 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
     dept: '',
     emp: '',
     deviceType: '',
-    items: '',
     notes: '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
   });
@@ -40,10 +39,9 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [subjectsResponse, departmentsResponse, equipmentResponse] = await Promise.all([
+        const [subjectsResponse, departmentsResponse] = await Promise.all([
           subjectsApi.getAll(),
-          departmentsApi.getAll(),
-          equipmentApi.getAll()
+          departmentsApi.getAll()
         ]);
         
         if (subjectsResponse.success) {
@@ -56,10 +54,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
           setDepartments(departmentsResponse.data);
         }
         
-        if (equipmentResponse.success) {
-          const equipment = equipmentResponse.data.map(item => item.equipment);
-          setEquipmentList(equipment);
-        }
+
       } catch (error) {
         console.error('Error loading form data:', error);
         toast({
@@ -107,7 +102,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         dept: formData.dept,
         emp: formData.emp,
         device_type: formData.deviceType,
-        items: formData.items,
+        items: '',
         notes: formData.notes,
 
         action: '',
@@ -143,7 +138,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
           dept: '',
           emp: '',
           deviceType: '',
-          items: '',
+
           notes: '',
           priority: 'medium'
         });
@@ -288,43 +283,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="items">Equipment/Items Details</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {loading ? (
-                <div className="text-sm text-muted-foreground">Loading equipment...</div>
-              ) : equipmentList.length > 0 ? (
-                equipmentList.map((item) => (
-                  <Button
-                    key={item}
-                    type="button"
-                    variant={formData.items?.includes(item) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      const currentItems = formData.items ? formData.items.split(', ').filter(i => i.trim()) : [];
-                      const newItems = currentItems.includes(item) 
-                        ? currentItems.filter(i => i !== item)
-                        : [...currentItems, item];
-                      setFormData(prev => ({ ...prev, items: newItems.join(', ') }));
-                    }}
-                    className="text-xs"
-                  >
-                    {item}
-                  </Button>
-                ))
-              ) : (
-                <div className="text-sm text-muted-foreground">No equipment available</div>
-              )}
-            </div>
-            <Textarea
-              id="items"
-              placeholder="Selected items will appear here..."
-              value={formData.items}
-              onChange={(e) => setFormData(prev => ({ ...prev, items: e.target.value }))}
-              rows={2}
-              readOnly
-            />
-          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="notes">Additional Notes</Label>
