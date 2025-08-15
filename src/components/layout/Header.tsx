@@ -1,10 +1,11 @@
-import { User, LogOut, Shield, Settings, Database, AlertTriangle, Bell, Search } from 'lucide-react';
+import { User, LogOut, Shield, Settings, Database, AlertTriangle, Bell, Search, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 import NotificationDropdown from '@/components/notifications/NotificationDropdown';
 import MobileNav from './MobileNav';
 import { useState, useEffect } from 'react';
@@ -17,6 +18,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => {
   const { user, logout, isAdmin } = useAuth();
+  const { isConnected: wsConnected } = useWebSocket();
   const [dbStatus, setDbStatus] = useState<'connected' | 'demo' | 'error' | 'checking'>('checking');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -85,30 +87,44 @@ const Header: React.FC<HeaderProps> = ({ onNotificationClick, ticketCount }) => 
         {/* Right Section - Status and User */}
         <div className="flex items-center gap-3">
 
-          {/* Database Status Indicator */}
-          <div className="hidden sm:flex">
+          {/* Status Indicators */}
+          <div className="hidden sm:flex items-center gap-2">
+            {/* Database Status */}
             {dbStatus === 'checking' && (
               <Badge variant="outline" className="animate-pulse">
                 <Database className="h-3 w-3 mr-1 animate-spin" />
-                Checking DB...
+                DB...
               </Badge>
             )}
             {dbStatus === 'connected' && (
               <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
                 <Database className="h-3 w-3 mr-1" />
-                DB Connected
+                DB
               </Badge>
             )}
             {dbStatus === 'demo' && (
               <Badge variant="destructive" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
                 <AlertTriangle className="h-3 w-3 mr-1" />
-                Demo Mode
+                Demo
               </Badge>
             )}
             {dbStatus === 'error' && (
               <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 DB Error
+              </Badge>
+            )}
+            
+            {/* WebSocket Status */}
+            {wsConnected ? (
+              <Badge variant="default" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                <Wifi className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-gray-500/10 text-gray-600 border-gray-500/20">
+                <WifiOff className="h-3 w-3 mr-1" />
+                Offline
               </Badge>
             )}
           </div>

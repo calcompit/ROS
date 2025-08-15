@@ -58,36 +58,28 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   // Fetch tickets from API
   const fetchTickets = async () => {
     try {
-      console.log('🔄 Fetching tickets...');
-      console.log('🔗 API Base URL:', 'https://10.13.12.36:3001/api');
       setLoading(true);
       setError(null);
       const response = await repairOrdersApi.getAll();
-      console.log('📦 API Response:', response);
+      
       if (response.success) {
-        console.log('✅ Tickets loaded:', response.data.length);
-        // Check if response is from demo mode
         if (response.demo) {
-          setError('⚠️ Database connection failed - Server is running in demo mode. Please check database connectivity.');
+          setError('Database connection failed - Demo mode');
           setTickets([]);
-          // Force redirect to error page if not connected
           if (!isConnected && !isDemoMode) {
             forceRedirectToError();
           }
         } else {
           setTickets(response.data);
-          setError(null); // Clear any previous errors
+          setError(null);
         }
       } else {
-        console.error('❌ API failed:', response);
         setError('Failed to fetch tickets');
-        // Only redirect if it's a real error, not just empty data
         if (response.error) {
           forceRedirectToError();
         }
       }
     } catch (err) {
-      console.error('❌ Error fetching tickets:', err);
       setError('Failed to connect to server');
       forceRedirectToError();
     } finally {
