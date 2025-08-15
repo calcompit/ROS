@@ -313,6 +313,15 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('name')}</label>
                 <p className="text-foreground mt-1">{ticket.name}</p>
               </div>
+              {(ticket.device_type || ticket.deviceType) && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">{getDisplayName('deviceType')}</label>
+                  <p className="text-foreground mt-1">{ticket.device_type || ticket.deviceType}</p>
+                </div>
+              )}
+            </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('dept')}</label>
                 <p className="text-foreground mt-1">{ticket.dept}</p>
@@ -363,18 +372,12 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               )}
             </div>
 
-            {/* Timestamps and Device Type */}
-            <div className="grid gap-4 md:grid-cols-3">
+            {/* Timestamps */}
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('insert_date')}</label>
                 <p className="text-foreground mt-1">{formatDate(ticket.insert_date)}</p>
               </div>
-              {(ticket.device_type || ticket.deviceType) && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">{getDisplayName('deviceType')}</label>
-                  <p className="text-foreground mt-1">{ticket.device_type || ticket.deviceType}</p>
-                </div>
-              )}
               <div>
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('last_date')}</label>
                 <p className="text-foreground mt-1">{formatDate(ticket.last_date)}</p>
