@@ -1,8 +1,8 @@
 // API Service for connecting to backend
 // Try to detect local IP automatically, fallback to environment variable or default
 const getLocalIP = () => {
-  // Use Windows Tailscale tunnel URL
-  return import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net/api';
+  // Use localhost for development (backend runs on Windows via SSH)
+  return import.meta.env.VITE_API_URL || 'https://localhost:3001/api';
 };
 
 const API_BASE_URL = getLocalIP();
