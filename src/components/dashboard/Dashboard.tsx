@@ -245,7 +245,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
           onClick={() => handleTabChange('tickets')}
           className="flex-1 sm:flex-none"
         >
-          My Tickets ({tickets.length})
+          My Tickets ({tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length})
         </Button>
         <Button
           variant={activeTab === 'new-ticket' ? 'default' : 'outline'}
@@ -469,44 +469,44 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="pl-10"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
               <Button
                 variant={statusFilter === 'all' ? 'default' : 'outline'}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter('all')}
-                className="shadow-sm flex-1 sm:flex-none"
+                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
-                All Status ({tickets.length})
+                All Status ({tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length})
               </Button>
               <Button
                 variant={statusFilter === 'pending' ? 'default' : 'outline'}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter('pending')}
-                className="shadow-sm flex-1 sm:flex-none"
+                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 Pending ({tickets.filter(t => t.status === 'pending').length})
               </Button>
               <Button
                 variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter('in-progress')}
-                className="shadow-sm flex-1 sm:flex-none"
+                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 In Progress ({tickets.filter(t => t.status === 'in-progress').length})
               </Button>
               <Button
                 variant={statusFilter === 'completed' ? 'default' : 'outline'}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter('completed')}
-                className="shadow-sm flex-1 sm:flex-none"
+                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 Completed ({tickets.filter(t => t.status === 'completed').length})
               </Button>
               <Button
                 variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter('cancelled')}
-                className="shadow-sm flex-1 sm:flex-none"
+                className="shadow-sm flex-1 sm:flex-none h-12 sm:h-9 text-sm sm:text-xs font-medium"
               >
                 Cancelled ({tickets.filter(t => t.status === 'cancelled').length})
               </Button>
