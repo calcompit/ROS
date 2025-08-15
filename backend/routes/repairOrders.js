@@ -231,8 +231,8 @@ router.post('/', async (req, res) => {
 
     const query = `
       INSERT INTO dbo.TBL_IT_PCMAINTENANCE 
-      (subject, name, dept, emp, items, rootcause, emprepair, status)
-      VALUES (@subject, @name, @dept, @emp, @items, @rootcause, @emprepair, 'pending')
+      (subject, name, dept, emp, items, rootcause, emprepair, status, insert_date)
+      VALUES (@subject, @name, @dept, @emp, @items, @rootcause, @emprepair, 'pending', @insert_date)
     `;
     
     const params = { 
@@ -242,7 +242,8 @@ router.post('/', async (req, res) => {
       emp, 
       items: items || '', 
       rootcause: rootcause || '', 
-      emprepair: emprepair || ''
+      emprepair: emprepair || '',
+      insert_date: insert_date || new Date().toISOString()
     };
     const result = await executeQuery(query, params);
 

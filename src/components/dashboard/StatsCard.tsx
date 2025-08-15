@@ -9,6 +9,7 @@ interface StatsCardProps {
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
   variant?: 'default' | 'primary' | 'success' | 'warning';
+  className?: string;
 }
 
 const StatsCard = ({ 
@@ -18,7 +19,8 @@ const StatsCard = ({
   icon: Icon, 
   trend, 
   trendValue, 
-  variant = 'default' 
+  variant = 'default',
+  className = ''
 }: StatsCardProps) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -47,7 +49,7 @@ const StatsCard = ({
   };
 
   return (
-    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in`}>
+    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${className}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">

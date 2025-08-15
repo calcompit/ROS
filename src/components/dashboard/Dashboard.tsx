@@ -38,7 +38,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'tickets' | 'new-ticket'>(getInitialTab());
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // Default active
   const [highlightedTicketId, setHighlightedTicketId] = useState(getHighlightedTicketId());
   const [tickets, setTickets] = useState<RepairOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +139,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
   };
 
   const handleNewTicket = (newTicket: TicketType) => {
-    setTickets(prev => [newTicket, ...prev]);
+    setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
     setActiveTab('tickets');
     window.location.hash = 'tickets';
     
@@ -362,38 +362,62 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
 
           {/* Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatsCard
-              title="Total Orders"
-              value={stats.total}
-              description={`${periodFilter === 'daily' ? 'Daily' : 
-                          periodFilter === 'monthly' ? 'Monthly' : 'Yearly'} orders`}
-              icon={Ticket}
-              variant="primary"
-            />
-            <StatsCard
-              title="Pending Review"
-              value={stats.pending}
-              description="Awaiting technician"
-              icon={Clock}
-              variant="warning"
-            />
-            <StatsCard
-              title="In Progress"
-              value={stats.inProgress}
-              description="Being worked on"
-              icon={TrendingUp}
-              variant="primary"
-            />
-            <StatsCard
-              title="Completed"
-              value={stats.completed}
-              description="Successfully resolved"
-              icon={Calendar}
-              variant="success"
-            />
+            <div 
+              className="cursor-pointer transition-all hover:shadow-md"
+              onClick={() => setStatusFilter('all')}
+            >
+              <StatsCard
+                title="Total Orders"
+                value={stats.total}
+                description={`${periodFilter === 'daily' ? 'Daily' : 
+                            periodFilter === 'monthly' ? 'Monthly' : 'Yearly'} orders`}
+                icon={Ticket}
+                variant="primary"
+                className={statusFilter === 'all' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
+              />
+            </div>
+            <div 
+              className="cursor-pointer transition-all hover:shadow-md"
+              onClick={() => setStatusFilter('pending')}
+            >
+              <StatsCard
+                title="Pending Review"
+                value={stats.pending}
+                description="Awaiting technician"
+                icon={Clock}
+                variant="warning"
+                className={statusFilter === 'pending' ? 'ring-2 ring-warning/20 shadow-lg' : ''}
+              />
+            </div>
+            <div 
+              className="cursor-pointer transition-all hover:shadow-md"
+              onClick={() => setStatusFilter('in-progress')}
+            >
+              <StatsCard
+                title="In Progress"
+                value={stats.inProgress}
+                description="Being worked on"
+                icon={TrendingUp}
+                variant="primary"
+                className={statusFilter === 'in-progress' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
+              />
+            </div>
+            <div 
+              className="cursor-pointer transition-all hover:shadow-md"
+              onClick={() => setStatusFilter('completed')}
+            >
+              <StatsCard
+                title="Completed"
+                value={stats.completed}
+                description="Successfully resolved"
+                icon={Calendar}
+                variant="success"
+                className={statusFilter === 'completed' ? 'ring-2 ring-success/20 shadow-lg' : ''}
+              />
+            </div>
           </div>
 
-          {/* Recent Orders */}
+          {/* All Orders for Period */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-foreground">
@@ -405,7 +429,7 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredTicketsForStats.slice(0, 6).map((ticket) => (
+              {filteredTicketsForStats.map((ticket) => (
                 <TicketCard 
                   key={ticket.order_no} 
                   ticket={ticket}
@@ -445,19 +469,48 @@ const Dashboard = ({ initialTab = 'overview' }: DashboardProps = {}) => {
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('all')}
+                className="shadow-sm"
+              >
+                All Status ({tickets.length})
+              </Button>
+              <Button
+                variant={statusFilter === 'pending' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('pending')}
+                className="shadow-sm"
+              >
+                Pending ({tickets.filter(t => t.status === 'pending').length})
+              </Button>
+              <Button
+                variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('in-progress')}
+                className="shadow-sm"
+              >
+                In Progress ({tickets.filter(t => t.status === 'in-progress').length})
+              </Button>
+              <Button
+                variant={statusFilter === 'completed' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('completed')}
+                className="shadow-sm"
+              >
+                Completed ({tickets.filter(t => t.status === 'completed').length})
+              </Button>
+              <Button
+                variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('cancelled')}
+                className="shadow-sm"
+              >
+                Cancelled ({tickets.filter(t => t.status === 'cancelled').length})
+              </Button>
+            </div>
           </div>
 
           {/* Loading State */}
