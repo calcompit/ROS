@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import EditTicketForm from './EditTicketForm';
 
@@ -31,8 +32,8 @@ export interface Ticket {
 
 interface TicketCardProps {
   ticket: Ticket;
-  onTicketUpdate?: (updatedTicket: Ticket) => void;
-  onTicketDelete?: (orderNo: string | number) => void;
+  onTicketUpdate?: (updatedTicket: Ticket) => Promise<void>;
+  onTicketDelete?: (orderNo: string | number) => Promise<void>;
   isHighlighted?: boolean;
 }
 
@@ -41,6 +42,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { isAdmin } = useAuth();
 
   // Helper functions for display names and formatting
@@ -141,9 +143,15 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
   };
 
   const handleDelete = async () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     setIsDeleting(true);
     try {
       await onTicketDelete?.(ticket.order_no);
+      setShowDeleteConfirm(false);
+      setIsDetailOpen(false);
     } finally {
       setIsDeleting(false);
     }
@@ -446,16 +454,38 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                   <Save className="h-4 w-4 mr-2" />
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="destructive" 
-                  onClick={handleDelete}
-                  className="flex-1"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {isDeleting ? 'Deleting...' : 'Delete'}
-                </Button>
+                <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      className="flex-1"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ยืนยันการลบ Repair Order</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        คุณแน่ใจหรือไม่ที่จะลบ Repair Order <strong>{ticket.order_no}</strong>?<br/>
+                        การดำเนินการนี้ไม่สามารถยกเลิกได้
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isDeleting}>ยกเลิก</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={confirmDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? 'กำลังลบ...' : 'ลบ'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-2">

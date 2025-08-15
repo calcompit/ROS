@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, X, Trash2 } from 'lucide-react';
+import { Save, X, Trash2, Monitor, Laptop, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -152,9 +152,18 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
               <SelectValue placeholder="Select device type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Computer">Computer</SelectItem>
-              <SelectItem value="Laptop">Laptop</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="Computer" className="flex items-center gap-2">
+                <Monitor className="h-4 w-4" />
+                Computer
+              </SelectItem>
+              <SelectItem value="Laptop" className="flex items-center gap-2">
+                <Laptop className="h-4 w-4" />
+                Laptop
+              </SelectItem>
+              <SelectItem value="Other" className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4" />
+                Other
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
