@@ -19,10 +19,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header onNotificationClick={handleNotificationClick} ticketCount={ticketCount} />
-      <main className="lg:ml-80 max-w-7xl mx-auto">
-        <Dashboard key={dashboardKey} onTicketCountUpdate={handleTicketCountUpdate} />
+      <main className="lg:ml-80 max-w-7xl mx-auto p-4 lg:p-6">
+        <div className="space-y-6">
+          <Dashboard key={dashboardKey} onTicketCountUpdate={handleTicketCountUpdate} />
+        </div>
       </main>
     </div>
   );
