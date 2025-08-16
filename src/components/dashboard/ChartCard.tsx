@@ -288,6 +288,6 @@ const ChartCard = React.memo(({
       </CardContent>
     </Card>
   );
-};
+});
 
 export default React.memo(ChartCard);
