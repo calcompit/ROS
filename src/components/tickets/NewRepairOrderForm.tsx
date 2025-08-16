@@ -200,26 +200,26 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                     <SelectValue placeholder="Select device type">
                     {formData.deviceType && (
                       <div className="flex items-center gap-2">
-                        {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4" />}
-                        {formData.deviceType === 'Laptop' && <Laptop className="h-4 w-4" />}
-                        {formData.deviceType === 'Other' && <Smartphone className="h-4 w-4" />}
+                        {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4 text-blue-600" />}
+                        {formData.deviceType === 'Laptop' && <Laptop className="h-4 w-4 text-green-600" />}
+                        {formData.deviceType === 'Other' && <Smartphone className="h-4 w-4 text-purple-600" />}
                         {formData.deviceType}
                       </div>
                     )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Computer" className="flex items-center gap-2 py-3 h-12">
-                    <Monitor className="h-4 w-4 text-blue-600" />
-                    Computer
+                  <SelectItem value="Computer" className="flex items-center gap-3 py-4">
+                    <Monitor className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <span>Computer</span>
                   </SelectItem>
-                  <SelectItem value="Laptop" className="flex items-center gap-2 py-3 h-12">
-                    <Laptop className="h-4 w-4 text-green-600" />
-                    Laptop
+                  <SelectItem value="Laptop" className="flex items-center gap-3 py-4">
+                    <Laptop className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <span>Laptop</span>
                   </SelectItem>
-                  <SelectItem value="Other" className="flex items-center gap-2 py-3 h-12">
-                    <Smartphone className="h-4 w-4 text-purple-600" />
-                    Other
+                  <SelectItem value="Other" className="flex items-center gap-3 py-4">
+                    <Smartphone className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                    <span>Other</span>
                   </SelectItem>
                 </SelectContent>
               </Select>
