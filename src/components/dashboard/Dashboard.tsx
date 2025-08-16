@@ -262,26 +262,16 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       // Remove ticket with fade-out animation
       setTickets(prev => {
         const newTickets = prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
-        
-        // Update stats after tickets are updated
-        setTimeout(() => {
-          setDashboardStats(prevStats => {
-            if (!prevStats) return prevStats;
-            return {
-              ...prevStats,
-              total: prevStats.total - 1,
-              pending: newTickets.filter(t => t.status === 'pending').length,
-              inProgress: newTickets.filter(t => t.status === 'in-progress').length,
-              completed: newTickets.filter(t => t.status === 'completed').length,
-              cancelled: newTickets.filter(t => t.status === 'cancelled').length
-            };
-          });
-        }, 0);
-        
         return newTickets;
       });
+      
+      // Refresh dashboard stats to update charts
+      setTimeout(() => {
+        console.log('🔄 Refreshing dashboard stats after order deletion...');
+        fetchDashboardStats();
+      }, 100);
     }
-  }, []);
+  }, [fetchDashboardStats]);
 
   // Set up WebSocket event listeners for real-time updates
   useEffect(() => {
