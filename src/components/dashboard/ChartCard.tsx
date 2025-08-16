@@ -16,7 +16,7 @@ interface ChartCardProps {
   className?: string;
 }
 
-const ChartCard = React.memo(({ 
+const ChartCard = ({ 
   title, 
   data, 
   icon: Icon, 
@@ -288,6 +288,6 @@ const ChartCard = React.memo(({
       </CardContent>
     </Card>
   );
-});
+};
 
-export default React.memo(ChartCard);
+export default ChartCard;

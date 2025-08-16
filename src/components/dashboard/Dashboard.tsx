@@ -725,6 +725,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             <>
               <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                             <ChartCard
+              key={`status-${stats.pending}-${stats.inProgress}-${stats.completed}-${stats.cancelled}`}
               title="Status Distribution"
               data={(() => {
                 const chartData = [
@@ -740,6 +741,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               type="pie"
             />
                 <ChartCard
+                  key={`trends-${JSON.stringify(dashboardStats?.monthlyTrends)}`}
                   title={(() => {
                     switch (periodFilter) {
                       case 'daily':
@@ -773,6 +775,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               {dashboardStats && dashboardStats.byDepartment && dashboardStats.byDeviceType && (
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                   <ChartCard
+                    key={`dept-${JSON.stringify(dashboardStats?.byDepartment)}`}
                     title="Department Distribution"
                     data={(() => {
                       const chartData = (dashboardStats?.byDepartment || []).map((dept, index) => ({
@@ -788,6 +791,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                     type="bar"
                   />
                   <ChartCard
+                    key={`device-${JSON.stringify(dashboardStats?.byDeviceType)}`}
                     title="Device Type Distribution"
                     data={(() => {
                       const chartData = (dashboardStats?.byDeviceType || []).map((device, index) => ({
