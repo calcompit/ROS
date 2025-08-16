@@ -123,14 +123,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       setLoading(true);
       setError(null);
       
-      // Prepare filter parameters - only status filter for My Tickets
-      const filterParams: any = {};
-      if (statusFilter && statusFilter !== 'all') {
-        filterParams.status = statusFilter;
-      }
-      
-      console.log('📡 Filter params:', filterParams);
-      const response = await repairOrdersApi.getAll(filterParams);
+      // Always fetch all tickets - filtering will be done on frontend
+      const response = await repairOrdersApi.getAll({});
       
       if (response.success) {
         console.log('✅ API response received:', response.data);
@@ -155,7 +149,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       setLoading(false);
       console.log('📡 Fetch tickets completed');
     }
-  }, [statusFilter]);
+  }, []);
   
   // Update refs when functions change
   useEffect(() => {
@@ -163,10 +157,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     fetchDashboardStatsRef.current = fetchDashboardStats;
   }, [fetchTickets, fetchDashboardStats]);
 
-  // Load tickets on component mount and when status filter changes
+  // Load tickets on component mount only
   useEffect(() => {
     fetchTickets();
-  }, [statusFilter]);
+  }, []);
 
   // Load dashboard stats on component mount and when date/period filters change
   useEffect(() => {
