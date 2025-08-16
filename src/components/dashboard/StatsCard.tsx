@@ -51,14 +51,12 @@ const StatsCard = ({
   };
 
   return (
-    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${className} ${
-      isUpdating ? 'animate-pulse ring-2 ring-blue-500/20' : ''
-    }`}>
+    <Card className={`${getVariantStyles()} shadow-card hover:shadow-hover transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-2 ${className}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+            <p className="text-3xl font-bold text-foreground transition-all duration-300 hover:scale-105">{value}</p>
             {description && (
               <p className="text-sm text-muted-foreground">{description}</p>
             )}

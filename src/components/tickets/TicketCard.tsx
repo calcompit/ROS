@@ -35,17 +35,26 @@ interface TicketCardProps {
   onTicketUpdate?: (updatedTicket: Ticket) => Promise<void>;
   onTicketDelete?: (orderNo: string | number) => Promise<void>;
   isHighlighted?: boolean;
-  isUpdating?: boolean;
-  lastUpdateTime?: Date | null;
 }
 
-const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false, isUpdating = false, lastUpdateTime }: TicketCardProps) => {
+const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false }: TicketCardProps) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [statusAnimation, setStatusAnimation] = useState(false);
+  const [previousStatus, setPreviousStatus] = useState(ticket.status);
   const { isAdmin } = useAuth();
+
+  // Animate status change
+  useEffect(() => {
+    if (previousStatus !== ticket.status) {
+      setStatusAnimation(true);
+      setPreviousStatus(ticket.status);
+      setTimeout(() => setStatusAnimation(false), 1000);
+    }
+  }, [ticket.status, previousStatus]);
 
   // Helper functions for display names and formatting
   const getDisplayName = (field: keyof Ticket): string => {
@@ -172,11 +181,9 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
 
   return (
     <>
-      <Card className={`flex flex-col h-full shadow-card hover:shadow-hover transition-all duration-200 animate-fade-in ${
+      <Card className={`flex flex-col h-full shadow-card hover:shadow-hover transition-all duration-300 ${
         isHighlighted 
           ? 'border-primary border-2 ring-2 ring-primary/20 shadow-lg' 
-          : isUpdating
-          ? 'border-blue-500 border-2 ring-2 ring-blue-500/20 shadow-lg animate-pulse'
           : 'border-border'
       }`}>
         <CardHeader className="pb-3">
@@ -195,19 +202,14 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
             </div>
             <div className="flex flex-col gap-2 items-end">
               {/* Update Indicator */}
-              {isUpdating && (
-                <div className="flex items-center gap-1 text-xs text-blue-600 animate-pulse">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-                  <span>Updating...</span>
-                </div>
-              )}
-              {lastUpdateTime && !isUpdating && (
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Updated {lastUpdateTime.toLocaleTimeString()}</span>
-                </div>
-              )}
-              <Badge variant="outline" className={getStatusColor(ticket.status)}>
+
+
+              <Badge 
+                variant="outline" 
+                className={`${getStatusColor(ticket.status)} transition-all duration-500 hover:scale-105 ${
+                  statusAnimation ? 'animate-pulse scale-110 ring-2 ring-primary/30' : ''
+                }`}
+              >
                 {formatStatus(ticket.status)}
               </Badge>
               {ticket.priority && (
@@ -464,12 +466,21 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 </Button>
                 <Button 
                   type="submit" 
-                  className="flex-1"
+                  className="flex-1 transition-all duration-200"
                   form="edit-ticket-form"
                   disabled={isSaving}
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
                 <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                   <AlertDialogTrigger asChild>

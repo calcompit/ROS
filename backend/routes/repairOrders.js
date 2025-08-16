@@ -1,5 +1,5 @@
 import express from 'express';
-import { executeQuery, getPool } from '../config/database.js';
+import { executeQuery, executeNonQuery } from '../config/database.js';
 
 const router = express.Router();
 
@@ -17,131 +17,87 @@ const emitRealtimeUpdate = (req, event, data) => {
   }
 };
 
-// Sample data for demo mode
-const sampleData = [
-  {
-    order_no: 'RO-2024-001',
-    subject: 'Laptop screen flickering during graphics applications',
-    name: 'PC-IT-001',
-    dept: 'IT Department',
-    emp: 'John Doe',
-    device_type: 'Laptop',
-    insert_date: '2024-01-15T10:30:00Z',
-    items: 'Dell Latitude 5520, Intel Graphics, 16GB RAM, Windows 11 Pro',
-    rootcause: 'Graphics driver compatibility issue with updated Windows display drivers',
-    emprepair: 'Smith Wilson',
-    last_date: '2024-01-16T14:20:00Z',
-    status: 'in-progress'
-  },
-  {
-    order_no: 'RO-2024-002',
-    subject: 'Network printer not responding to print jobs',
-    name: 'PRINTER-ACC-02',
-    dept: 'Accounting',
-    emp: 'Jane Smith',
-    device_type: 'Printer',
-    insert_date: '2024-01-14T09:15:00Z',
-    items: 'HP LaserJet Pro 4050dn, Network Connection, Ethernet',
-    rootcause: '',
-    emprepair: '',
-    last_date: '2024-01-14T09:15:00Z',
-    status: 'pending'
-  },
-  {
-    order_no: 'RO-2024-003',
-    subject: 'Desktop computer fails to boot - black screen',
-    name: 'PC-HR-015',
-    dept: 'Human Resources',
-    emp: 'Mike Johnson',
-    device_type: 'Desktop',
-    insert_date: '2024-01-10T11:45:00Z',
-    items: 'Dell OptiPlex 7090, 32GB RAM, 1TB SSD, Intel Core i7',
-    rootcause: 'Failed RAM module causing boot failure, PSU voltage instability',
-    emprepair: 'Sarah Chen',
-    last_date: '2024-01-13T15:30:00Z',
-    status: 'completed'
-  }
-];
-
-// Check if database is available
-const isDatabaseAvailable = () => {
-  return getPool() !== null && getPool() !== undefined;
-};
-
-// Generate new order number
-const generateOrderNo = () => {
-  const year = new Date().getFullYear();
-  const timestamp = Date.now().toString().slice(-6);
-  return `RO-${year}-${timestamp}`;
-};
-
 // GET /api/repair-orders - Get all repair orders with filters
 router.get('/', async (req, res) => {
   try {
-    const { status, dept, emprepair, priority, limit = 50, offset = 0 } = req.query;
+    const { status, dept, emprepair, priority, limit = 50, offset = 0, date, period } = req.query;
     
-    // Check if database is available
-    if (!isDatabaseAvailable()) {
-      // Demo mode - use sample data
-      let filteredData = [...sampleData];
-      
-      // Apply filters
-      if (status) {
-        filteredData = filteredData.filter(item => item.status === status);
-      }
-      if (dept) {
-        filteredData = filteredData.filter(item => item.dept === dept);
-      }
-      if (emprepair) {
-        filteredData = filteredData.filter(item => item.emprepair === emprepair);
-      }
-      
-      // Sort by insert_date DESC
-      filteredData.sort((a, b) => new Date(b.insert_date) - new Date(a.insert_date));
-      
-      // Apply pagination
-      const startIndex = parseInt(offset);
-      const endIndex = startIndex + parseInt(limit);
-      const paginatedData = filteredData.slice(startIndex, endIndex);
-      
-      return res.json({
-        success: true,
-        data: paginatedData,
-        total: paginatedData.length,
-        demo: true
-      });
-    }
-
-    // Database mode
-    let query = 'SELECT * FROM dbo.TBL_IT_PCMAINTENANCE WHERE 1=1';
-    const params = {};
-
+    let sqlQuery = `
+      SELECT 
+        order_no,
+        subject,
+        name,
+        dept,
+        emp,
+        device_type,
+        insert_date,
+        status,
+        items,
+        rootcause,
+        action,
+        emprepair,
+        last_date,
+        notes
+      FROM TBL_IT_PCMAINTENANCE
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    
     // Add filters
-    if (status) {
-      query += ' AND status = @status';
-      params.status = status;
+    if (status && status !== 'all') {
+      sqlQuery += ` AND status = ?`;
+      params.push(status);
     }
+    
     if (dept) {
-      query += ' AND dept = @dept';
-      params.dept = dept;
+      sqlQuery += ` AND dept = ?`;
+      params.push(dept);
     }
+    
     if (emprepair) {
-      query += ' AND emprepair = @emprepair';
-      params.emprepair = emprepair;
+      sqlQuery += ` AND emprepair = ?`;
+      params.push(emprepair);
     }
-
-    // Add ordering and pagination
-    query += ' ORDER BY insert_date DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY';
-    params.offset = parseInt(offset);
-    params.limit = parseInt(limit);
-
-    const result = await executeQuery(query, params);
-
+    
+    // Add date filter based on period
+    if (date && period) {
+      const selectedDate = new Date(date);
+      
+      switch (period) {
+        case 'daily':
+          sqlQuery += ` AND insert_date LIKE ?`;
+          params.push(`${date}%`);
+          break;
+        case 'monthly':
+          const monthYear = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}`;
+          sqlQuery += ` AND FORMAT(insert_date, 'yyyy-MM') = ?`;
+          params.push(monthYear);
+          console.log('📊 Monthly filter params:', monthYear);
+          break;
+        case 'yearly':
+          sqlQuery += ` AND YEAR(insert_date) = ?`;
+          params.push(selectedDate.getFullYear());
+          break;
+        default:
+          // No filter - show all data
+          break;
+      }
+    }
+    
+    // Add sorting and pagination for SQL Server
+    sqlQuery += ` ORDER BY insert_date DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`;
+    
+    params.push(parseInt(offset));
+    params.push(parseInt(limit));
+    
+    const result = await executeQuery(sqlQuery, params);
+    
     if (result.success) {
       res.json({
         success: true,
         data: result.data,
-        total: result.data.length
+        demo: result.demo
       });
     } else {
       res.status(500).json({
@@ -154,43 +110,57 @@ router.get('/', async (req, res) => {
     console.error('Error fetching repair orders:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
 
-// GET /api/repair-orders/:orderNo - Get specific repair order
-router.get('/:orderNo', async (req, res) => {
+// GET /api/repair-orders/:id - Get specific repair order
+router.get('/:id', async (req, res) => {
   try {
-    const { orderNo } = req.params;
+    const { id } = req.params;
     
-    const query = 'SELECT * FROM dbo.TBL_IT_PCMAINTENANCE WHERE order_no = @orderNo';
-    const result = await executeQuery(query, { orderNo });
-
-    if (result.success) {
-      if (result.data.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Repair order not found'
-        });
-      }
-      
+    const sqlQuery = `
+      SELECT 
+        order_no,
+        subject,
+        name,
+        dept,
+        emp,
+        device_type,
+        insert_date,
+        status,
+        items,
+        rootcause,
+        action,
+        emprepair,
+        last_date,
+        notes
+      FROM TBL_IT_PCMAINTENANCE
+      WHERE order_no = ?
+    `;
+    
+    const result = await executeQuery(sqlQuery, [id]);
+    
+    if (result.success && result.data.length > 0) {
       res.json({
         success: true,
-        data: result.data[0]
+        data: result.data[0],
+        demo: result.demo
       });
     } else {
-      res.status(500).json({
+      res.status(404).json({
         success: false,
-        message: 'Failed to fetch repair order',
-        error: result.error
+        message: 'Repair order not found'
       });
     }
   } catch (error) {
     console.error('Error fetching repair order:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
@@ -204,92 +174,56 @@ router.post('/', async (req, res) => {
       dept,
       emp,
       device_type,
-      items,
-      rootcause,
-      emprepair,
-      insert_date
+      items = '',
+      notes = ''
     } = req.body;
-
-    // Validation
-    if (!subject || !name || !dept || !emp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: subject, name, dept, emp'
-      });
-    }
-
-    if (!getPool()) {
-      // Demo mode - create sample order
-      const order_no = generateOrderNo();
-      const now = new Date().toISOString();
-      const newOrder = {
-        order_no,
-        subject,
-        name,
-        dept,
-        emp,
-        device_type: device_type || '',
-        items: items || '',
-        rootcause: rootcause || '',
-        action: '',
-        emprepair: emprepair || '',
-        last_date: now,
-        status: 'pending',
-        insert_date: now
-      };
-      
-      // Add to sample data
-      sampleData.unshift(newOrder);
-      
-      // Emit real-time update
-      emitRealtimeUpdate(req, 'order-created', {
-        data: newOrder,
-        action: 'created'
-      });
-      
-      return res.status(201).json({
-        success: true,
-        message: 'Repair order created successfully (demo mode)',
-        data: newOrder,
-        demo: true
-      });
-    }
-
-    const query = `
-      INSERT INTO dbo.TBL_IT_PCMAINTENANCE 
-      (subject, name, dept, emp, device_type, items, rootcause, emprepair, status, insert_date)
-      VALUES (@subject, @name, @dept, @emp, @device_type, @items, @rootcause, @emprepair, 'pending', @insert_date)
+    
+    const sqlQuery = `
+      INSERT INTO TBL_IT_PCMAINTENANCE 
+      (subject, name, dept, emp, device_type, items, notes, status, insert_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', GETDATE())
     `;
     
-    const params = { 
-      subject, 
-      name, 
-      dept, 
-      emp, 
-      device_type: device_type || '', 
-      items: items || '', 
-      rootcause: rootcause || '', 
-      emprepair: emprepair || '',
-      insert_date: insert_date || new Date().toISOString()
-    };
-    const result = await executeQuery(query, params);
-
+    const result = await executeNonQuery(sqlQuery, [
+      subject,
+      name,
+      dept,
+      emp,
+      device_type,
+      items,
+      notes
+    ]);
+    
     if (result.success) {
-      // Get the last inserted order
-      const fetchQuery = 'SELECT TOP 1 * FROM dbo.TBL_IT_PCMAINTENANCE WHERE subject = @subject AND name = @name ORDER BY order_no DESC';
-      const fetchResult = await executeQuery(fetchQuery, { subject, name });
+      // Get the created order
+      const getOrderQuery = `
+        SELECT * FROM TBL_IT_PCMAINTENANCE 
+        WHERE order_no = (SELECT SCOPE_IDENTITY())
+      `;
       
-      // Emit real-time update
-      emitRealtimeUpdate(req, 'order-created', {
-        data: fetchResult.data[0],
-        action: 'created'
-      });
-
-      res.status(201).json({
-        success: true,
-        message: 'Repair order created successfully',
-        data: fetchResult.data[0]
-      });
+      const orderResult = await executeQuery(getOrderQuery);
+      
+      if (orderResult.success && orderResult.data.length > 0) {
+        const newOrder = orderResult.data[0];
+        
+        // Emit real-time update
+        emitRealtimeUpdate(req, 'order-created', {
+          data: newOrder,
+          action: 'created'
+        });
+        
+        res.status(201).json({
+          success: true,
+          data: newOrder,
+          demo: result.demo
+        });
+      } else {
+        res.status(201).json({
+          success: true,
+          message: 'Repair order created successfully',
+          demo: result.demo
+        });
+      }
     } else {
       res.status(500).json({
         success: false,
@@ -301,139 +235,80 @@ router.post('/', async (req, res) => {
     console.error('Error creating repair order:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
 
-// PUT /api/repair-orders/:orderNo - Update repair order
-router.put('/:orderNo', async (req, res) => {
+// PUT /api/repair-orders/:id - Update repair order
+router.put('/:id', async (req, res) => {
   try {
-    const { orderNo } = req.params;
-    // Convert orderNo to integer for database query
-    const orderNoInt = parseInt(orderNo);
-    const updateFields = req.body;
-
-    // Remove fields that shouldn't be updated
-    delete updateFields.order_no;
-    delete updateFields.insert_date;
-    delete updateFields.created_at;
-
-    const allowedFields = [
-      'subject', 'rootcause', 'action', 'emprepair', 'status', 
-      'items', 'notes', 'device_type'
-    ];
-
-    if (!getPool()) {
-      // Demo mode - update sample data
-      console.log('🔄 Demo mode: Updating order', orderNo);
-      console.log('🔄 Update fields:', updateFields);
-      
-      const orderIndex = sampleData.findIndex(order => order.order_no.toString() === orderNo.toString());
-      
-      if (orderIndex === -1) {
-        console.log('❌ Order not found in sample data:', orderNo);
-        return res.status(404).json({
-          success: false,
-          message: 'Repair order not found'
-        });
-      }
-
-      console.log('✅ Found order at index:', orderIndex);
-      console.log('📝 Original order data:', sampleData[orderIndex]);
-
-      // Update allowed fields
-      Object.keys(updateFields).forEach(key => {
-        if (allowedFields.includes(key) && updateFields[key] !== undefined) {
-          console.log(`🔄 Updating field ${key}: ${sampleData[orderIndex][key]} -> ${updateFields[key]}`);
-          sampleData[orderIndex][key] = updateFields[key];
-        }
-      });
-
-      // Always update last_date
-      sampleData[orderIndex].last_date = new Date().toISOString();
-      console.log('🔄 Updated last_date to:', sampleData[orderIndex].last_date);
-
-      console.log('📝 Updated order data:', sampleData[orderIndex]);
-
-      // Emit real-time update
-      emitRealtimeUpdate(req, 'order-updated', {
-        orderNo: orderNo,
-        data: sampleData[orderIndex],
-        action: 'updated'
-      });
-
-      return res.json({
-        success: true,
-        message: 'Repair order updated successfully (demo mode)',
-        data: sampleData[orderIndex],
-        demo: true
-      });
-    }
-
-    const updates = [];
-    const params = { orderNo: orderNoInt };
-
-    console.log('🔄 Database mode: Updating order', orderNo);
-    console.log('🔄 Update fields:', updateFields);
-
-    Object.keys(updateFields).forEach(key => {
-      if (allowedFields.includes(key) && updateFields[key] !== undefined) {
-        updates.push(`${key} = @${key}`);
-        params[key] = updateFields[key];
-        console.log(`🔄 Adding field ${key} = ${updateFields[key]}`);
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Build dynamic UPDATE query
+    const updateFields = [];
+    const params = [];
+    
+    Object.keys(updateData).forEach(key => {
+      if (key !== 'order_no' && updateData[key] !== undefined) {
+        updateFields.push(`${key} = ?`);
+        params.push(updateData[key]);
       }
     });
-
-    // Always update last_date
-    updates.push('last_date = GETDATE()');
-    console.log('🔄 Adding last_date update');
-
-    if (updates.length === 0) {
-      console.log('❌ No valid fields to update');
+    
+    if (updateFields.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No valid fields to update'
+        message: 'No fields to update'
       });
     }
-
-    const query = `UPDATE dbo.TBL_IT_PCMAINTENANCE SET ${updates.join(', ')} WHERE order_no = @orderNo`;
-    console.log('🔄 SQL Query:', query);
-    console.log('🔄 Parameters:', params);
     
-    const result = await executeQuery(query, params);
-
+    // Add last_date update
+          updateFields.push('last_date = GETDATE()');
+    
+    const sqlQuery = `
+      UPDATE TBL_IT_PCMAINTENANCE 
+      SET ${updateFields.join(', ')}
+      WHERE order_no = ?
+    `;
+    
+    params.push(id);
+    
+    const result = await executeNonQuery(sqlQuery, params);
+    
     if (result.success) {
-      console.log('✅ Database update successful');
+      // Get the updated order
+      const getOrderQuery = `
+        SELECT * FROM TBL_IT_PCMAINTENANCE WHERE order_no = ?
+      `;
       
-      // Fetch updated order
-      const fetchQuery = 'SELECT * FROM dbo.TBL_IT_PCMAINTENANCE WHERE order_no = @orderNo';
-      const fetchResult = await executeQuery(fetchQuery, { orderNo: orderNoInt });
+      const orderResult = await executeQuery(getOrderQuery, [id]);
       
-      if (fetchResult.data.length === 0) {
-        console.log('❌ Updated order not found in database');
-        return res.status(404).json({
-          success: false,
-          message: 'Repair order not found'
+      if (orderResult.success && orderResult.data.length > 0) {
+        const updatedOrder = orderResult.data[0];
+        
+        // Emit real-time update
+        emitRealtimeUpdate(req, 'order-updated', {
+          orderNo: id,
+          data: updatedOrder,
+          action: 'updated'
+        });
+        
+        res.json({
+          success: true,
+          data: updatedOrder,
+          demo: result.demo
+        });
+      } else {
+        res.json({
+          success: true,
+          message: 'Repair order updated successfully',
+          demo: result.demo
         });
       }
-
-      console.log('📝 Updated order data:', fetchResult.data[0]);
-
-      // Emit real-time update
-      emitRealtimeUpdate(req, 'order-updated', {
-        orderNo: orderNo,
-        data: fetchResult.data[0],
-        action: 'updated'
-      });
-
-      res.json({
-        success: true,
-        message: 'Repair order updated successfully',
-        data: fetchResult.data[0]
-      });
     } else {
-      console.error('❌ Database update failed:', result.error);
       res.status(500).json({
         success: false,
         message: 'Failed to update repair order',
@@ -444,65 +319,31 @@ router.put('/:orderNo', async (req, res) => {
     console.error('Error updating repair order:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
 
-// DELETE /api/repair-orders/:orderNo - Delete repair order
-router.delete('/:orderNo', async (req, res) => {
+// DELETE /api/repair-orders/:id - Delete repair order
+router.delete('/:id', async (req, res) => {
   try {
-    const { orderNo } = req.params;
-    // Convert orderNo to integer for database query
-    const orderNoInt = parseInt(orderNo);
+    const { id } = req.params;
     
-    if (!getPool()) {
-      // Demo mode - remove from sample data
-      const orderIndex = sampleData.findIndex(order => order.order_no.toString() === orderNo.toString());
-      
-      if (orderIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: 'Repair order not found'
-        });
-      }
-
-      // Remove from sample data
-      sampleData.splice(orderIndex, 1);
-
-      // Emit real-time update
-      emitRealtimeUpdate(req, 'order-deleted', {
-        orderNo: orderNo,
-        action: 'deleted'
-      });
-
-      return res.json({
-        success: true,
-        message: 'Repair order deleted successfully (demo mode)',
-        demo: true
-      });
-    }
+    const sqlQuery = `DELETE FROM TBL_IT_PCMAINTENANCE WHERE order_no = ?`;
+    const result = await executeNonQuery(sqlQuery, [id]);
     
-    const query = 'DELETE FROM dbo.TBL_IT_PCMAINTENANCE WHERE order_no = @orderNo';
-    const result = await executeQuery(query, { orderNo: orderNoInt });
-
     if (result.success) {
-      if (result.rowsAffected && result.rowsAffected[0] === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Repair order not found'
-        });
-      }
-
       // Emit real-time update
       emitRealtimeUpdate(req, 'order-deleted', {
-        orderNo: orderNo,
+        orderNo: id,
         action: 'deleted'
       });
-
+      
       res.json({
         success: true,
-        message: 'Repair order deleted successfully'
+        message: 'Repair order deleted successfully',
+        demo: result.demo
       });
     } else {
       res.status(500).json({
@@ -515,7 +356,8 @@ router.delete('/:orderNo', async (req, res) => {
     console.error('Error deleting repair order:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
@@ -523,116 +365,172 @@ router.delete('/:orderNo', async (req, res) => {
 // GET /api/repair-orders/stats/dashboard - Get dashboard statistics
 router.get('/stats/dashboard', async (req, res) => {
   try {
-    // Check if database is available
-    if (!isDatabaseAvailable()) {
-      // Demo mode - calculate stats from sample data
-      const total = sampleData.length;
-      const pending = sampleData.filter(item => item.status === 'pending').length;
-      const inProgress = sampleData.filter(item => item.status === 'in-progress').length;
-      const completed = sampleData.filter(item => item.status === 'completed').length;
-      const cancelled = sampleData.filter(item => item.status === 'cancelled').length;
-      
-      // Department stats
-      const deptStats = {};
-      sampleData.forEach(item => {
-        deptStats[item.dept] = (deptStats[item.dept] || 0) + 1;
-      });
-      const byDepartment = Object.entries(deptStats).map(([dept, count]) => ({ dept, count }));
-      
-      // Monthly trends (last 6 months)
-      const monthlyData = [];
-      const now = new Date();
-      for (let i = 5; i >= 0; i--) {
-        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthName = month.toLocaleDateString('en-US', { month: 'short' });
-        const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-        const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-        
-        const count = sampleData.filter(item => {
-          const itemDate = new Date(item.insert_date);
-          return itemDate >= monthStart && itemDate <= monthEnd;
-        }).length;
-        
-        monthlyData.push({ label: monthName, value: count });
-      }
-      
-      // Device type stats
-      const deviceStats = {};
-      sampleData.forEach(item => {
-        const deviceType = item.device_type || 'Unknown';
-        deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
-      });
-      const byDeviceType = Object.entries(deviceStats).map(([device, count]) => ({ device, count }));
-
-      return res.json({
-        success: true,
-        data: {
-          total,
-          pending,
-          inProgress,
-          completed,
-          cancelled,
-          byDepartment,
-          byDeviceType,
-          monthlyTrends: monthlyData,
-          recentOrders: sampleData.slice(0, 10)
-        },
-        demo: true
-      });
-    }
-
-    // Real database queries
-    const queries = {
-      total: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE',
-      pending: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'pending\'',
-      inProgress: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'in-progress\'',
-      completed: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'completed\'',
-      cancelled: 'SELECT COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE status = \'cancelled\'',
-      byDepartment: 'SELECT dept, COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE GROUP BY dept ORDER BY count DESC',
-      byDeviceType: 'SELECT device_type, COUNT(*) as count FROM dbo.TBL_IT_PCMAINTENANCE WHERE device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC',
-      monthlyTrends: `
-        SELECT 
-          FORMAT(insert_date, 'MMM') as month,
-          COUNT(*) as count
-        FROM dbo.TBL_IT_PCMAINTENANCE 
-        WHERE insert_date >= DATEADD(month, -5, GETDATE())
-        GROUP BY FORMAT(insert_date, 'MMM'), MONTH(insert_date)
-        ORDER BY MONTH(insert_date)
-      `,
-      recentOrders: 'SELECT TOP 10 * FROM dbo.TBL_IT_PCMAINTENANCE ORDER BY insert_date DESC'
-    };
-
-    const results = {};
+    const { date, period } = req.query;
     
-    for (const [key, query] of Object.entries(queries)) {
-      const result = await executeQuery(query);
-      if (result.success) {
-        results[key] = result.data;
-      } else {
-        console.error(`Error executing ${key} query:`, result.error);
-        results[key] = [];
+    // Build date filter based on period
+    let dateFilter = '';
+    let dateParams = [];
+    
+    if (date && period) {
+      const selectedDate = new Date(date);
+      
+      switch (period) {
+        case 'daily':
+          dateFilter = `AND insert_date LIKE ?`;
+          dateParams.push(`${date}%`);
+          break;
+        case 'monthly':
+          const monthYear = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}`;
+          dateFilter = `AND FORMAT(insert_date, 'yyyy-MM') = ?`;
+          dateParams.push(monthYear);
+          console.log('📊 Monthly filter params:', monthYear);
+          break;
+        case 'yearly':
+          dateFilter = `AND YEAR(insert_date) = ?`;
+          dateParams.push(selectedDate.getFullYear());
+          break;
+        default:
+          // No filter - show all data
+          break;
       }
     }
-
+    
+    console.log('📊 Dashboard stats filter:', { date, period, dateFilter, dateParams });
+    
+    // Get total count with date filter
+    const totalQuery = `SELECT COUNT(*) as total FROM TBL_IT_PCMAINTENANCE WHERE 1=1 ${dateFilter}`;
+    const totalResult = await executeQuery(totalQuery, dateParams);
+    const total = totalResult.success ? totalResult.data[0].total : 0;
+    
+    // Get status counts with date filter
+    const statusQuery = `
+      SELECT status, COUNT(*) as count 
+      FROM TBL_IT_PCMAINTENANCE 
+      WHERE 1=1 ${dateFilter}
+      GROUP BY status
+    `;
+    const statusResult = await executeQuery(statusQuery, dateParams);
+    
+    const statusCounts = {};
+    if (statusResult.success) {
+      statusResult.data.forEach(row => {
+        statusCounts[row.status] = row.count;
+      });
+    }
+    
+    // Get department counts with date filter
+    const deptQuery = `
+      SELECT TOP 10 dept, COUNT(*) as count 
+      FROM TBL_IT_PCMAINTENANCE 
+      WHERE 1=1 ${dateFilter}
+      GROUP BY dept 
+      ORDER BY count DESC
+    `;
+    const deptResult = await executeQuery(deptQuery, dateParams);
+    
+    // Get device type counts with date filter
+    const deviceQuery = `
+      SELECT TOP 5 device_type, COUNT(*) as count 
+      FROM TBL_IT_PCMAINTENANCE 
+      WHERE 1=1 ${dateFilter}
+      GROUP BY device_type 
+      ORDER BY count DESC
+    `;
+    const deviceResult = await executeQuery(deviceQuery, dateParams);
+    
+    // Get dynamic trends based on period
+    let trendsQuery = '';
+    let trendsLabel = '';
+    
+    switch (period) {
+      case 'daily':
+        // Show hourly trends for the selected day with time range
+        trendsQuery = `
+          SELECT 
+            FORMAT(insert_date, 'HH:00') + '-00' as hour,
+            COUNT(*) as count
+          FROM TBL_IT_PCMAINTENANCE 
+          WHERE insert_date LIKE ?
+          GROUP BY FORMAT(insert_date, 'HH:00')
+          ORDER BY hour ASC
+        `;
+        trendsLabel = 'hour';
+        break;
+      case 'monthly':
+        // Show daily trends for the selected month with full date
+        trendsQuery = `
+          SELECT 
+            FORMAT(insert_date, 'dd MMMM yyyy') as day,
+            COUNT(*) as count
+          FROM TBL_IT_PCMAINTENANCE 
+          WHERE FORMAT(insert_date, 'yyyy-MM') = ?
+          GROUP BY FORMAT(insert_date, 'dd MMMM yyyy')
+          ORDER BY MIN(insert_date) ASC
+        `;
+        trendsLabel = 'day';
+        break;
+      case 'yearly':
+        // Show monthly trends for the selected year with month name
+        trendsQuery = `
+          SELECT 
+            FORMAT(insert_date, 'MMMM yyyy') as month,
+            COUNT(*) as count
+          FROM TBL_IT_PCMAINTENANCE 
+          WHERE YEAR(insert_date) = ?
+          GROUP BY FORMAT(insert_date, 'MMMM yyyy')
+          ORDER BY MIN(insert_date) ASC
+        `;
+        trendsLabel = 'month';
+        break;
+      default:
+        // Default: monthly trends (last 12 months)
+        trendsQuery = `
+          SELECT 
+            FORMAT(insert_date, 'MMMM yyyy') as month,
+            COUNT(*) as count
+          FROM TBL_IT_PCMAINTENANCE 
+          WHERE insert_date >= DATEADD(month, -12, GETDATE())
+          GROUP BY FORMAT(insert_date, 'MMMM yyyy')
+          ORDER BY MIN(insert_date) DESC
+        `;
+        trendsLabel = 'month';
+        break;
+    }
+    
+    const trendsResult = await executeQuery(trendsQuery, period ? dateParams : []);
+    
+    // Get recent orders with date filter
+    const recentQuery = `
+      SELECT TOP 5 * FROM TBL_IT_PCMAINTENANCE 
+      WHERE 1=1 ${dateFilter}
+      ORDER BY insert_date DESC
+    `;
+    const recentResult = await executeQuery(recentQuery, dateParams);
+    
+    const stats = {
+      total,
+      pending: statusCounts.pending || 0,
+      inProgress: statusCounts['in-progress'] || 0,
+      completed: statusCounts.completed || 0,
+      cancelled: statusCounts.cancelled || 0,
+      byDepartment: deptResult.success ? deptResult.data : [],
+      byDeviceType: deviceResult.success ? deviceResult.data : [],
+      monthlyTrends: trendsResult.success ? trendsResult.data : [],
+      trendsLabel: trendsLabel,
+      recentOrders: recentResult.success ? recentResult.data : []
+    };
+    
     res.json({
       success: true,
-      data: {
-        total: results.total[0]?.count || 0,
-        pending: results.pending[0]?.count || 0,
-        inProgress: results.inProgress[0]?.count || 0,
-        completed: results.completed[0]?.count || 0,
-        cancelled: results.cancelled[0]?.count || 0,
-        byDepartment: results.byDepartment,
-        byDeviceType: results.byDeviceType,
-        monthlyTrends: results.monthlyTrends,
-        recentOrders: results.recentOrders
-      }
+      data: stats,
+      demo: totalResult.demo
     });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch dashboard statistics'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });

@@ -1,278 +1,309 @@
-# 🚀 FixIt Bright Dashboard - WebSocket Setup Guide
+# FixIt Bright Dashboard - Project Documentation
 
-## 📋 Project Overview
-**FixIt Bright Dashboard** - Modern equipment management dashboard for IT repair orders with real-time WebSocket functionality.
+## 🎯 **Project Overview**
 
-## 🎯 Success Story: WebSocket Connection & Real-time Updates Fixed
+FixIt Bright Dashboard เป็นระบบจัดการ repair orders ที่พัฒนาด้วย React + TypeScript (Frontend) และ Node.js + Express (Backend) เชื่อมต่อกับ SQL Server database
 
-### ❌ Problems Encountered
-1. **WebSocket Connection Failed**: Frontend couldn't connect to WebSocket server
-2. **Protocol Mismatch**: Frontend trying to connect to `wss://` (secure) but backend using `ws://` (insecure)
-3. **Port Mismatch**: Frontend trying to connect to port 3002 but backend WebSocket on port 3001
-4. **API Protocol Mismatch**: Frontend using HTTPS but backend using HTTP
-5. **Real-time Updates Not Working**: Dashboard not updating automatically when data changes
-6. **Missing Event Handlers**: Frontend not listening to WebSocket events
-7. **Infinite Loop in useEffect**: Maximum update depth exceeded due to changing dependencies
-8. **WebSocketProvider Scope Issue**: Header component couldn't access WebSocket context
-9. **Router Scope Issue**: DatabaseProvider couldn't access useNavigate hook
-10. **Real-time Ticket Filtering Issue**: Tickets didn't move between status columns when updated
-11. **Cross-Device Real-time Updates**: ✅ RESOLVED - Dashboard now updates on all devices via WebSocket
+## 🏗️ **Architecture**
 
-### ✅ Solutions Implemented
+### **Frontend (React + TypeScript)**
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + Radix UI
+- **State Management**: React Context (Auth, Database, WebSocket, Notifications)
+- **Charts**: Custom SVG Charts (Pie, Bar, Line)
+- **Icons**: Lucide React
 
-#### 1. Backend Configuration
-- **Server**: Using `server-http.js` instead of `server.js`
-- **Protocol**: HTTP instead of HTTPS for development
-- **Port**: Single port (3001) for both HTTP API and WebSocket
-- **WebSocket**: Socket.IO server running on same port as HTTP server
+### **Backend (Node.js + Express)**
+- **Framework**: Express.js
+- **Database**: SQL Server (MSSQL)
+- **Real-time**: Socket.IO (WebSocket)
+- **Authentication**: Custom JWT-based
+- **API**: RESTful endpoints
 
-#### 2. Frontend Configuration
-- **Environment Variables**:
-  ```bash
-  VITE_API_URL=http://10.51.101.49:3001/api
-  VITE_WS_URL=ws://10.51.101.49:3001
-  VITE_APP_ENV=development
-  ```
-- **WebSocket Settings**:
-  ```javascript
-  const socket = io(wsUrl, {
-    transports: ['websocket', 'polling'],
-    timeout: 20000,
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    withCredentials: false,
-    extraHeaders: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    secure: false, // For development
-  });
-  ```
-- **Real-time Event Handlers**:
-  ```javascript
-  // WebSocket Context with event handlers
-  const { 
-    isConnected: wsConnected, 
-    onOrderCreated, 
-    onOrderUpdated, 
-    onOrderDeleted 
-  } = useWebSocket();
+## 📁 **Project Structure**
 
-  // Set up real-time event listeners with proper dependencies
-  useEffect(() => {
-    if (!wsConnected) return;
-
-    const handleOrderCreated = (data) => {
-      console.log('🔄 Real-time: Order created:', data);
-      fetchTickets();
-      fetchDashboardStats();
-    };
-
-    onOrderCreated(handleOrderCreated);
-    onOrderUpdated(handleOrderCreated);
-    onOrderDeleted(handleOrderCreated);
-
-    return () => {
-      offOrderCreated(handleOrderCreated);
-      offOrderUpdated(handleOrderCreated);
-      offOrderDeleted(handleOrderCreated);
-    };
-  }, [wsConnected]); // Only depend on wsConnected to prevent infinite loops
-  ```
-
-#### 3. Network Architecture
 ```
-MacBook (Frontend) ←→ Windows (Backend)
-    8081                   3001
-   (Vite)               (HTTP + WebSocket)
+fixit-bright-dash-main/
+├── backend/
+│   ├── config/
+│   │   ├── database.js          # Database connection config
+│   │   └── demo-database.js     # Demo database (removed)
+│   ├── routes/
+│   │   ├── auth.js              # Authentication routes
+│   │   ├── database.js          # Database status routes
+│   │   ├── departments.js       # Department management
+│   │   ├── equipment.js         # Equipment management
+│   │   ├── notifications.js     # Notification system
+│   │   ├── repairOrders.js      # Main repair orders API
+│   │   ├── setup.js             # Setup routes
+│   │   └── subjects.js          # Subject management
+│   ├── scripts/
+│   │   ├── create_equipment_table.sql
+│   │   ├── create_repair_orders_table.sql
+│   │   └── migrate.js
+│   ├── server.js                # Main server file
+│   └── package.json
+├── src/
+│   ├── components/
+│   │   ├── auth/
+│   │   │   └── LoginForm.tsx
+│   │   ├── dashboard/
+│   │   │   ├── ChartCard.tsx    # Custom chart components
+│   │   │   ├── Dashboard.tsx    # Main dashboard
+│   │   │   └── StatsCard.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx       # Navigation header
+│   │   │   └── MobileNav.tsx
+│   │   ├── notifications/
+│   │   │   └── NotificationDropdown.tsx
+│   │   ├── tickets/
+│   │   │   ├── EditTicketForm.tsx
+│   │   │   ├── NewRepairOrderForm.tsx
+│   │   │   └── TicketCard.tsx
+│   │   └── ui/                  # Radix UI components
+│   ├── contexts/
+│   │   ├── AuthContext.tsx      # Authentication context
+│   │   ├── DatabaseContext.tsx  # Database connection context
+│   │   ├── NotificationContext.tsx
+│   │   └── WebSocketContext.tsx
+│   ├── services/
+│   │   └── api.ts               # API service functions
+│   └── pages/
+│       ├── Index.tsx            # Main page
+│       └── NotFound.tsx
+└── package.json
 ```
 
-#### 4. React Context Provider Hierarchy
-```
-QueryClientProvider
-└── AuthProvider
-    └── NotificationProvider
-        └── WebSocketProvider
-            └── TooltipProvider
-                └── BrowserRouter
-                    └── DatabaseProvider
-                        └── App Components
-```
+## 🔧 **Key Features Implemented**
 
-**Key**: 
-- All providers must wrap components that need their context
-- Router-dependent providers (like DatabaseProvider) must be inside BrowserRouter
-- WebSocketProvider can be outside BrowserRouter since it doesn't use router hooks
+### 1. **Data Filtering & Dashboard**
+- ✅ Date-based filtering (daily, monthly, yearly)
+- ✅ Dynamic trends based on selected period
+- ✅ Responsive dashboard with custom charts
+- ✅ Real-time data updates via WebSocket
 
-## 🔧 Setup Instructions
+### 2. **Responsive Design**
+- ✅ iPad portrait mode optimization
+- ✅ Mobile-first responsive design
+- ✅ Adaptive grid layouts (2-3 columns based on screen size)
 
-### Prerequisites
-- Node.js installed on both MacBook and Windows
-- Tailscale VPN connection between devices
-- SSH access to Windows machine
+### 3. **Database Security**
+- ✅ Sensitive data blurring (server, database, user)
+- ✅ Admin-only access to sensitive information
+- ✅ Show/Hide toggle for admin users
 
-### 1. Backend Setup (Windows)
+### 4. **Chart Enhancements**
+- ✅ Custom SVG charts with animations
+- ✅ Enhanced visual effects (shadows, gradients, hover)
+- ✅ Responsive chart sizing
+- ✅ Zero-data handling
+
+### 5. **Authentication & Authorization**
+- ✅ JWT-based authentication
+- ✅ Role-based access control (admin/user)
+- ✅ Secure database connection management
+
+## 🚀 **Development Setup**
+
+### **Backend Setup**
 ```bash
-# Navigate to backend directory
-cd C:/Users/Dell-PC/OneDrive/Documents/fixit-bright-dash-main/backend
-
-# Install dependencies
+cd backend
 npm install
-
-# Start HTTP server with WebSocket
-npm run start:http
-# or
-node server-http.js
+npm start
 ```
 
-### 2. Frontend Setup (MacBook)
+### **Frontend Setup**
 ```bash
-# Navigate to project directory
-cd /Users/7ystem/Documents/fixit-bright-dash-main
-
-# Install dependencies
 npm install
-
-# Start frontend with correct environment variables
-./start-frontend-mac.sh
+npm run dev
 ```
 
-### 3. Environment Configuration
-Create `.env.local` file:
-```bash
-# API Configuration
-VITE_API_URL=http://10.51.101.49:3001/api
-VITE_WS_URL=ws://10.51.101.49:3001
-VITE_APP_ENV=development
+### **Environment Configuration**
+- Backend runs on HTTP port 3001
+- Frontend runs on port 8081
+- Database: SQL Server (MSSQL)
+- WebSocket: Socket.IO for real-time updates
 
-# Windows Backend Configuration
-WINDOWS_TAILSCALE_IP=10.51.101.49
-WINDOWS_BACKEND_PORT=3001
+## 📊 **API Endpoints**
 
-# Development Settings
-NODE_ENV=development
-```
+### **Authentication**
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
 
-## 🧪 Testing Commands
+### **Repair Orders**
+- `GET /api/repair-orders` - Get all repair orders
+- `POST /api/repair-orders` - Create new repair order
+- `PUT /api/repair-orders/:id` - Update repair order
+- `GET /api/repair-orders/stats/dashboard` - Get dashboard statistics
 
-### Test Backend Health
-```bash
-curl -s http://10.51.101.49:3001/health
-```
+### **Database Management**
+- `GET /api/database/status` - Get database connection status
+- `POST /api/database/test-connection` - Test database connection
+- `POST /api/database/reconnect` - Reconnect to database
 
-### Test WebSocket Connection
+### **Other Endpoints**
+- `GET /api/departments` - Get departments
+- `GET /api/equipment` - Get equipment
+- `GET /api/subjects` - Get subjects
+
+## 🔒 **Security Features**
+
+### **Database Connection Security**
+- Sensitive information (server, database, user) is blurred by default
+- Only admin users can view sensitive data
+- Show/Hide toggle for admin users
+- Secure connection management
+
+### **Authentication Security**
+- JWT token-based authentication
+- Role-based access control
+- Secure password handling
+
+## 📱 **Responsive Design**
+
+### **Breakpoints**
+- Mobile: < 768px (1 column)
+- Tablet: 768px - 1024px (2 columns)
+- Desktop: > 1024px (2-3 columns)
+- Large Desktop: > 1536px (3 columns)
+
+### **iPad Portrait Mode**
+- Search bar on separate row from status filters
+- Status filters show icon + count (horizontal layout)
+- 2 columns for ticket cards
+- Optimized spacing and typography
+
+## 🎨 **UI/UX Enhancements**
+
+### **Chart Improvements**
+- Enhanced pie charts with detailed legends
+- Improved bar charts with visual effects
+- Better line charts with grid lines and gradients
+- Responsive chart sizing
+- Zero-data state handling
+
+### **Modal Enhancements**
+- Database connection modal with security features
+- Responsive button layouts
+- Improved padding and spacing
+- Better visual hierarchy
+
+## 🔄 **Real-time Features**
+
+### **WebSocket Integration**
+- Real-time ticket updates
+- Live dashboard statistics
+- Connection status monitoring
+- Automatic reconnection handling
+
+## 📈 **Data Management**
+
+### **Filtering System**
+- Date-based filtering (daily, monthly, yearly)
+- Status-based filtering
+- Search functionality
+- Dynamic trend analysis
+
+### **Database Operations**
+- SQL Server integration
+- Optimized queries for performance
+- Error handling and logging
+- Connection pooling
+
+## 🛠️ **Development Tools**
+
+### **Frontend**
+- Vite for fast development
+- TypeScript for type safety
+- ESLint for code quality
+- Tailwind CSS for styling
+
+### **Backend**
+- Node.js with Express
+- SQL Server driver
+- Socket.IO for real-time
+- Environment-based configuration
+
+## 📝 **Key Implementation Details**
+
+### **Date Filtering Logic**
 ```javascript
-import { io } from 'socket.io-client';
+// Daily filter
+WHERE insert_date LIKE '2025-08-16%'
 
-const socket = io('ws://10.51.101.49:3001', {
-  transports: ['websocket', 'polling'],
-  timeout: 5000,
-  reconnection: false,
-  secure: false,
-});
+// Monthly filter
+WHERE FORMAT(insert_date, 'yyyy-MM') = '2025-08'
 
-socket.on('connect', () => {
-  console.log('✅ WebSocket connected!');
-  socket.emit('join-room', 'repair-orders');
-});
-
-socket.on('connect_error', (error) => {
-  console.error('❌ WebSocket failed:', error.message);
-});
+// Yearly filter
+WHERE YEAR(insert_date) = 2025
 ```
 
-### Test API Endpoints
+### **Dynamic Trends**
+- Daily period → Hourly trends
+- Monthly period → Daily trends
+- Yearly period → Monthly trends
+
+### **Security Implementation**
+```javascript
+const blurSensitiveData = (text: string) => {
+  if (!isAdmin || !showSensitiveData) {
+    return '••••••••••••••••';
+  }
+  return text;
+};
+```
+
+## 🎯 **Future Enhancements**
+
+### **Potential Improvements**
+- Advanced search and filtering
+- Export functionality (PDF, Excel)
+- Email notifications
+- Mobile app development
+- Advanced analytics dashboard
+- Multi-language support
+
+### **Performance Optimizations**
+- Database query optimization
+- Caching strategies
+- Image optimization
+- Bundle size reduction
+
+## 📚 **Documentation Files**
+
+- `DATABASE_CONNECTION_COMPLETE.md` - Database setup guide
+- `DATABASE_CONNECTION_GUIDE.md` - Connection troubleshooting
+- `MACBOOK_SETUP.md` - MacBook development setup
+- `SETUP_COMPLETE.md` - Project setup completion
+- `SETUP_GUIDE.md` - General setup guide
+- `SQL_SERVER_ONLY_MODE.md` - SQL Server configuration
+
+## 🔧 **Troubleshooting**
+
+### **Common Issues**
+1. **Port conflicts**: Use `lsof -ti:8081 | xargs kill -9`
+2. **Database connection**: Check SQL Server configuration
+3. **WebSocket issues**: Verify backend is running on correct port
+4. **Build errors**: Clear node_modules and reinstall
+
+### **Development Commands**
 ```bash
-# Test subjects API
-curl -s http://10.51.101.49:3001/api/subjects
+# Kill process on port
+lsof -ti:8081 | xargs kill -9
 
-# Test repair orders API
-curl -s http://10.51.101.49:3001/api/repair-orders
+# Restart backend
+cd backend && npm start
+
+# Restart frontend
+npm run dev
+
+# Check database connection
+curl http://localhost:3001/api/database/status
 ```
-
-## 🎉 Success Indicators
-
-### ✅ Backend Running
-- HTTP server on port 3001
-- WebSocket server on same port
-- Database connection successful
-- Health endpoint responding
-
-### ✅ Frontend Running
-- Vite dev server on port 8081
-- WebSocket connection established
-- API requests successful
-- Real-time updates working
-
-### ✅ WebSocket Events Working
-- `order-created` - New repair order notifications with automatic dashboard refresh
-- `order-updated` - Order update notifications with automatic dashboard refresh
-- `order-deleted` - Order deletion notifications with automatic dashboard refresh
-- Room management (`join-room`, `leave-room`)
-- Real-time connection status indicator
-- Automatic data synchronization across all connected clients
-
-## 🔍 Troubleshooting
-
-### Common Issues
-1. **WebSocket Connection Failed**
-   - Check if backend is running on Windows
-   - Verify port 3001 is accessible
-   - Ensure protocol is `ws://` not `wss://`
-
-2. **API Requests Failing**
-   - Check if using HTTP not HTTPS
-   - Verify backend health endpoint
-   - Check network connectivity
-
-3. **Frontend Not Loading**
-   - Check if Vite server is running
-   - Verify port 8081 is not blocked
-   - Check browser console for errors
-
-### Debug Commands
-```bash
-# Check backend processes on Windows
-sshpass -p "password" ssh dell-pc@10.51.101.49 "tasklist | findstr node"
-
-# Check backend logs
-sshpass -p "password" ssh dell-pc@10.51.101.49 "cd backend && type backend.log"
-
-# Test network connectivity
-ping 10.51.101.49
-nc -zv 10.51.101.49 3001
-```
-
-## 📚 Key Learnings
-
-1. **Protocol Consistency**: Use same protocol (HTTP/WS) for both API and WebSocket
-2. **Port Management**: Single port for both HTTP and WebSocket simplifies setup
-3. **Environment Variables**: Proper configuration prevents connection issues
-4. **Development vs Production**: Different settings for dev (HTTP/WS) vs prod (HTTPS/WSS)
-5. **Network Architecture**: Tailscale VPN enables cross-platform development
-6. **React useEffect Dependencies**: Careful management of dependencies prevents infinite loops
-7. **WebSocket Event Management**: Proper event handler registration and cleanup is crucial
-8. **Real-time State Management**: Automatic data refresh on WebSocket events improves UX
-9. **React Context Provider Scope**: Providers must wrap all components that need access to context
-10. **Component Hierarchy**: Proper placement of providers ensures context availability throughout the app
-11. **Router Hook Dependencies**: Components using useNavigate must be inside BrowserRouter
-12. **Provider Order**: Router-dependent providers must be placed after BrowserRouter
-13. **Real-time Filtering**: Use useMemo for filtered tickets to ensure proper re-rendering when status changes
-14. **Status-based Ticket Movement**: Tickets automatically move between columns when status changes
-15. **WebSocket Event Debugging**: Added comprehensive logging for real-time event handling
-16. **Cross-Device Synchronization**: Real-time updates work across multiple devices simultaneously
-17. **Visual Feedback & Animations**: UI shows real-time update indicators and animations
-
-## 🚀 Next Steps
-
-1. **Production Deployment**: Configure HTTPS/WSS for production
-2. **SSL Certificates**: Set up proper SSL certificates
-3. **Load Balancing**: Consider load balancer for multiple instances
-4. **Monitoring**: Add WebSocket connection monitoring
-5. **Error Handling**: Implement robust error handling and reconnection logic
 
 ---
 
-**Last Updated**: August 15, 2025  
-**Status**: ✅ WebSocket Connection & Cross-Device Real-time Updates Successfully Established  
-**Environment**: Development (MacBook + Windows via Tailscale)
+**Last Updated**: January 2025
+**Version**: 1.0.0
+**Status**: Production Ready

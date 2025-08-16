@@ -3,13 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import https from 'https';
 import http from 'http';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { testConnection } from './config/database.js';
-import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +19,7 @@ import notificationRoutes from './routes/notifications.js';
 import subjectRoutes from './routes/subjects.js';
 import departmentRoutes from './routes/departments.js';
 import equipmentRoutes from './routes/equipment.js';
+import databaseRoutes from './routes/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,71 +42,43 @@ app.use(limiter);
 
 // CORS configuration for cloud deployment
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost for development
-    if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
-      return callback(null, true);
-    }
-    
-    // Allow all netlify.app domains
-    if (origin.endsWith('.netlify.app') || origin === 'https://netlify.app') {
-      return callback(null, true);
-    }
-    
-    // Allow all pages.dev domains (Cloudflare Pages)
-    if (origin.endsWith('.pages.dev') || origin.includes('pages.dev')) {
-      return callback(null, true);
-    }
-    
-    // Allow Railway domains
-    if (origin.includes('.railway.app')) {
-      return callback(null, true);
-    }
-    
-    // Allow Render domains
-    if (origin.includes('.onrender.com')) {
-      return callback(null, true);
-    }
-    
-    // Allow specific domains if needed
-    const allowedDomains = [
-      'https://peaceful-tapioca-c9ada4.netlify.app',
-      'https://calcompit-ros.netlify.app',
-      'https://ros-4hr.pages.dev',
-      'https://fixit-bright-dash.netlify.app',
-      'https://fixit-bright-dash.onrender.com'
-    ];
-    
-    // Allow all 10.x.x.x IP addresses for local network
-    if (origin.startsWith('http://10.') || origin.startsWith('https://10.')) {
-      return callback(null, true);
-    }
-    
-    if (allowedDomains.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Log blocked origins for debugging
-    console.log(`🚫 Blocked origin: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins for development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With', 'Access-Control-Allow-Origin']
 }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Add CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Origin');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Repair Order API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// WebSocket health check endpoint
+app.get('/socket.io/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Socket.IO server is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -120,6 +90,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/equipment', equipmentRoutes);
+app.use('/api/database', databaseRoutes);
 
 // Global error handler
 app.use((error, req, res, next) => {
@@ -142,20 +113,18 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
   try {
-    // Test database connection (non-blocking)
-    let dbConnected = false;
+    // Test database connection
     testConnection().then(connected => {
-      dbConnected = connected;
-      if (!dbConnected) {
-        console.warn('⚠️ Database connection failed - running in demo mode');
-        console.warn('⚠️ API will return sample data instead of real database');
-      } else {
+      if (connected) {
         console.log('✅ Database connected successfully');
+      } else {
+        console.error('❌ Database connection failed');
       }
     }).catch(error => {
-      console.warn('⚠️ Database connection failed - running in demo mode');
-      console.warn('⚠️ API will return sample data instead of real database');
+      console.error('❌ Database connection error:', error.message);
     });
+
+
 
     // Get local IP address
     const getLocalIP = async () => {
@@ -174,151 +143,59 @@ const startServer = async () => {
     const localIP = await getLocalIP();
     const serverIP = localIP; // Use detected local IP for network access
 
-    // Create self-signed certificate for development
-    try {
-      const options = {
-        key: fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem')),
-        cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
-      };
+    // Create HTTP server
+    const httpServer = http.createServer(app);
+    
+    // Create Socket.IO server on HTTP server
+    const io = new Server(httpServer, {
+      cors: {
+        origin: true,
+        methods: ["GET", "POST", "OPTIONS"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
+      },
+      allowEIO3: true,
+      transports: ['polling', 'websocket'],
+      pingTimeout: 60000,
+      pingInterval: 25000,
+      upgradeTimeout: 10000,
+      maxHttpBufferSize: 1e6
+    });
 
-      const httpsServer = https.createServer(options, app);
+    // Socket.IO event handlers
+    io.on('connection', (socket) => {
+      console.log(`🔌 Client connected: ${socket.id}`);
       
-      // Create HTTP server for WebSocket
-      const httpServer = http.createServer();
-      
-      // Create Socket.IO server on HTTP
-      const io = new Server(httpServer, {
-        cors: {
-          origin: "*",
-          methods: ["GET", "POST"]
-        },
-        allowEIO3: true,
-        transports: ['websocket', 'polling']
-      });
-
-      // Socket.IO event handlers
-      io.on('connection', (socket) => {
-        console.log(`🔌 Client connected: ${socket.id}`);
-        
-        // Join room for real-time updates
-        socket.on('join-room', (room) => {
-          socket.join(room);
-          console.log(`👥 Client ${socket.id} joined room: ${room}`);
-        });
-        
-        // Leave room
-        socket.on('leave-room', (room) => {
-          socket.leave(room);
-          console.log(`👋 Client ${socket.id} left room: ${room}`);
-        });
-        
-        socket.on('disconnect', () => {
-          console.log(`🔌 Client disconnected: ${socket.id}`);
-        });
-      });
-
-      // Make io available globally
-      app.set('io', io);
-
-      httpsServer.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 HTTPS Server running on port ${PORT}`);
-        console.log(`📍 Health check: https://localhost:${PORT}/health`);
-        console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
-        console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-        if (!dbConnected) {
-          console.log(`⚠️ Demo mode: Update .env with correct database settings`);
-        }
+      // Join room for real-time updates
+      socket.on('join-room', (room) => {
+        socket.join(room);
+        console.log(`👥 Client ${socket.id} joined room: ${room}`);
       });
       
-      // Start HTTP server for WebSocket on port 3002
-      const wsPort = PORT + 1;
-      httpServer.listen(wsPort, '0.0.0.0', () => {
-        console.log(`🔌 WebSocket Server running on port ${wsPort}`);
-        console.log(`🔌 WebSocket URL: ws://${serverIP}:${wsPort}`);
+      // Leave room
+      socket.on('leave-room', (room) => {
+        socket.leave(room);
+        console.log(`👋 Client ${socket.id} left room: ${room}`);
       });
-    } catch (sslError) {
-      console.error('❌ SSL certificate not found. Creating new one...');
       
-      // Create SSL directory if it doesn't exist
-      const sslDir = path.join(__dirname, 'ssl');
-      if (!fs.existsSync(sslDir)) {
-        fs.mkdirSync(sslDir, { recursive: true });
+      socket.on('disconnect', () => {
+        console.log(`🔌 Client disconnected: ${socket.id}`);
+      });
+    });
+
+    // Make io available globally
+    app.set('io', io);
+
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 HTTP Server running on port ${PORT}`);
+      console.log(`📍 Health check: http://localhost:${PORT}/health`);
+      console.log(`🌐 API base URL: http://${serverIP}:${PORT}/api`);
+      console.log(`🔌 WebSocket URL: ws://${serverIP}:${PORT}`);
+      console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+      if (!dbConnected) {
+    
       }
-
-             // Generate self-signed certificate using Node.js
-       const { execSync } = await import('child_process');
-      try {
-        execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${path.join(sslDir, 'key.pem')}" -out "${path.join(sslDir, 'cert.pem')}" -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=${localIP}"`, { stdio: 'inherit' });
-        
-        // Retry with new certificate
-        const options = {
-          key: fs.readFileSync(path.join(sslDir, 'key.pem')),
-          cert: fs.readFileSync(path.join(sslDir, 'cert.pem'))
-        };
-
-        const httpsServer = https.createServer(options, app);
-        
-        // Create HTTP server for WebSocket
-        const httpServer = http.createServer();
-        
-        // Create Socket.IO server on HTTP
-        const io = new Server(httpServer, {
-          cors: {
-            origin: "*",
-            methods: ["GET", "POST"]
-          },
-          allowEIO3: true,
-          transports: ['websocket', 'polling']
-        });
-
-        // Socket.IO event handlers
-        io.on('connection', (socket) => {
-          console.log(`🔌 Client connected: ${socket.id}`);
-          
-          // Join room for real-time updates
-          socket.on('join-room', (room) => {
-            socket.join(room);
-            console.log(`👥 Client ${socket.id} joined room: ${room}`);
-          });
-          
-          // Leave room
-          socket.on('leave-room', (room) => {
-            socket.leave(room);
-            console.log(`👋 Client ${socket.id} left room: ${room}`);
-          });
-          
-          socket.on('disconnect', () => {
-            console.log(`🔌 Client disconnected: ${socket.id}`);
-          });
-        });
-
-        // Make io available globally
-        app.set('io', io);
-
-        httpsServer.listen(PORT, '0.0.0.0', () => {
-          console.log(`🚀 HTTPS Server running on port ${PORT}`);
-          console.log(`📍 Health check: https://localhost:${PORT}/health`);
-          console.log(`🌐 API base URL: https://${serverIP}:${PORT}/api`);
-          console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-          if (!dbConnected) {
-            console.log(`⚠️ Demo mode: Update .env with correct database settings`);
-          }
-        });
-        
-        // Start HTTP server for WebSocket on port 3002
-        const wsPort = PORT + 1;
-        httpServer.listen(wsPort, '0.0.0.0', () => {
-          console.log(`🔌 WebSocket Server running on port ${wsPort}`);
-          console.log(`🔌 WebSocket URL: ws://${serverIP}:${wsPort}`);
-        });
-      } catch (genError) {
-        console.error('❌ Failed to generate SSL certificate. Please install OpenSSL or use mkcert.');
-        console.error('📝 Manual SSL setup required:');
-        console.error('   1. Install OpenSSL for Windows');
-        console.error(`   2. Run: openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=TH/ST=Bangkok/L=Bangkok/O=TechFix/OU=IT/CN=${localIP}"`);
-        process.exit(1);
-      }
-    }
+    });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

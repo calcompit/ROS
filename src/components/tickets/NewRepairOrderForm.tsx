@@ -22,7 +22,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
 
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { forceRedirectToError } = useDatabase();
+
   
   const [formData, setFormData] = useState({
     subject: '',
@@ -112,24 +112,12 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
       });
 
       if (response.success) {
-        if (response.demo) {
-          toast({
-            title: "⚠️ Demo Mode",
-            description: "Database connection failed. Redirecting to error page...",
-            variant: "destructive"
-          });
-          // Redirect to error page after a short delay
-          setTimeout(() => {
-            forceRedirectToError();
-          }, 2000);
-        } else {
-          onSubmit?.(response.data);
-          
-          toast({
-            title: "Repair order created successfully!",
-            description: `Your repair order ${response.data.order_no} has been submitted and is pending review.`,
-          });
-        }
+        onSubmit?.(response.data);
+        
+        toast({
+          title: "Repair order created successfully!",
+          description: `Your repair order ${response.data.order_no} has been submitted and is pending review.`,
+        });
 
         // Reset form
         setFormData({
@@ -158,7 +146,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
   };
 
   return (
-    <Card className="shadow-card animate-fade-in w-full max-w-4xl mx-auto">
+    <Card className="shadow-card w-full max-w-4xl mx-auto animate-in fade-in-0 slide-in-from-bottom-4">
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Plus className="h-5 w-5 text-primary" />

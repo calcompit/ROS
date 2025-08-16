@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Save, X, Trash2, Monitor, Laptop, Smartphone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, X, Trash2, Monitor, Laptop, Smartphone, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Ticket } from './TicketCard';
 import { repairOrdersApi, equipmentApi } from '@/services/api';
 import { useDatabase } from '@/contexts/DatabaseContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 
 interface EditTicketFormProps {
   ticket: Ticket;
@@ -35,10 +36,49 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     emp: ticket.emp                        // Reporter (read-only)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loadingFields, setLoadingFields] = useState<{[key: string]: boolean}>({});
   const [equipmentList, setEquipmentList] = useState<string[]>([]);
   const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const { toast } = useToast();
-  const { forceRedirectToError } = useDatabase();
+
+  const { onOrderUpdated, offOrderUpdated } = useWebSocket();
+
+  // Animation effect for editing
+  useEffect(() => {
+    if (isEditing) {
+      const timer = setTimeout(() => {
+        setIsEditing(false);
+      }, 300); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
+
+  // Realtime update effect
+  useEffect(() => {
+    const handleOrderUpdated = (data: any) => {
+      if (data.orderNo === ticket.order_no) {
+        // Show loading animation for changed fields
+        const changedFields: {[key: string]: boolean} = {};
+        if (data.data?.rootcause !== ticket.rootcause) changedFields.rootcause = true;
+        if (data.data?.action !== ticket.action) changedFields.action = true;
+        if (data.data?.notes !== ticket.notes) changedFields.notes = true;
+        if (data.data?.subject !== ticket.subject) changedFields.subject = true;
+        if (data.data?.status !== ticket.status) changedFields.status = true;
+        if (data.data?.items !== ticket.items) changedFields.items = true;
+        
+        setLoadingFields(changedFields);
+        
+        // Clear loading after a short delay to show the animation
+        setTimeout(() => {
+          setLoadingFields({});
+        }, 800);
+      }
+    };
+
+    onOrderUpdated(handleOrderUpdated);
+    return () => offOrderUpdated(handleOrderUpdated);
+  }, [onOrderUpdated, offOrderUpdated, ticket]);
 
   // Load equipment list on component mount
   React.useEffect(() => {
@@ -64,7 +104,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     loadEquipment();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -74,30 +114,18 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         rootcause: formData.rootcause,
         status: formData.status,
         emprepair: formData.emp_repair,
-        device_type: formData.deviceType,  // เพิ่ม device_type
+        device_type: formData.deviceType,
         items: formData.items,
         action: formData.action,
         notes: formData.notes
       });
 
       if (response.success) {
-        if (response.demo) {
-          toast({
-            title: "⚠️ Demo Mode",
-            description: "Database connection failed. Redirecting to error page...",
-            variant: "destructive"
-          });
-          // Redirect to error page after a short delay
-          setTimeout(() => {
-            forceRedirectToError();
-          }, 2000);
-        } else {
-          await onSave(response.data);
-          toast({
-            title: "Repair order updated successfully!",
-            description: `Order ${ticket.order_no} has been updated.`,
-          });
-        }
+        await onSave(response.data);
+        toast({
+          title: "Repair order updated successfully!",
+          description: `Order ${ticket.order_no} has been updated.`,
+        });
       } else {
         throw new Error(response.message || 'Failed to update repair order');
       }
@@ -133,12 +161,24 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="edit-subject">Issue Subject</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="edit-subject">Issue Subject</Label>
+            {loadingFields.subject && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Updating...
+              </div>
+            )}
+          </div>
           <Input
             id="edit-subject"
             value={formData.subject}
             onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
             required
+            className={`transition-all duration-200 ${
+              loadingFields.subject ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
+            }`}
+            disabled={loadingFields.subject}
           />
         </div>
         
@@ -206,24 +246,56 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-rootcause">Root Cause Analysis</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="edit-rootcause">Root Cause Analysis</Label>
+          {loadingFields.rootcause && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Updating...
+            </div>
+          )}
+        </div>
         <Textarea
           id="edit-rootcause"
           placeholder="Describe the root cause of the issue"
           value={formData.rootcause}
-          onChange={(e) => setFormData(prev => ({ ...prev, rootcause: e.target.value }))}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, rootcause: e.target.value }));
+            setIsEditing(true);
+          }}
           rows={3}
+          className={`transition-all duration-200 ${
+            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
+            loadingFields.rootcause ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
+          }`}
+          disabled={loadingFields.rootcause}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-action">Action Taken</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="edit-action">Action Taken</Label>
+          {loadingFields.action && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Updating...
+            </div>
+          )}
+        </div>
         <Textarea
           id="edit-action"
           placeholder="Describe the actions taken to resolve the issue"
           value={formData.action}
-          onChange={(e) => setFormData(prev => ({ ...prev, action: e.target.value }))}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, action: e.target.value }));
+            setIsEditing(true);
+          }}
           rows={3}
+          className={`transition-all duration-200 ${
+            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
+            loadingFields.action ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
+          }`}
+          disabled={loadingFields.action}
         />
       </div>
 
@@ -278,13 +350,29 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-notes">Additional Notes</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="edit-notes">Additional Notes</Label>
+          {loadingFields.notes && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Updating...
+            </div>
+          )}
+        </div>
         <Textarea
           id="edit-notes"
           placeholder="Add additional notes or comments..."
           value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, notes: e.target.value }));
+            setIsEditing(true);
+          }}
           rows={3}
+          className={`transition-all duration-200 ${
+            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
+            loadingFields.notes ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
+          }`}
+          disabled={loadingFields.notes}
         />
       </div>
 

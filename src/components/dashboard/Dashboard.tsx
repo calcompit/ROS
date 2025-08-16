@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Ticket, Calendar, Clock, TrendingUp, Search, Filter, Plus, CalendarDays, Sun, Moon, Calendar as CalendarIcon, ChevronLeft, ChevronRight, List, Loader2, CheckCircle, XCircle, BarChart3, PieChart, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -41,11 +41,14 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const [activeTab, setActiveTab] = useState<'overview' | 'tickets' | 'new-ticket'>(getInitialTab());
   const [searchQuery, setSearchQuery] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('all'); // Default active
+
   const [highlightedTicketId, setHighlightedTicketId] = useState(getHighlightedTicketId());
   const [tickets, setTickets] = useState<RepairOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [dashboardStats, setDashboardStats] = useState<{
     total: number;
     pending: number;
@@ -58,26 +61,40 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     recentOrders: RepairOrder[];
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+
+
   const [dateFilter, setDateFilter] = useState(() => {
     const today = new Date();
-    today.setDate(1); // Set to first day of current month
     return today.toISOString().split('T')[0];
   });
   const [periodFilter, setPeriodFilter] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const { addNotification } = useNotifications();
   const { isConnected: wsConnected, onOrderCreated, onOrderUpdated, onOrderDeleted, offOrderCreated, offOrderUpdated, offOrderDeleted } = useWebSocket();
-  const { isConnected, isDemoMode, forceRedirectToError } = useDatabase();
+  const { isConnected } = useDatabase();
+  
+  // Use refs to store the latest functions
+  const fetchTicketsRef = useRef<() => Promise<void>>();
+  const fetchDashboardStatsRef = useRef<() => Promise<void>>();
 
   // Fetch dashboard statistics from API
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      const response = await repairOrdersApi.getStats();
+      console.log('📊 Fetching dashboard stats with filters:', {
+        date: dateFilter,
+        period: periodFilter
+      });
+      const response = await repairOrdersApi.getStats({
+        date: dateFilter,
+        period: periodFilter
+      });
       
       if (response.success) {
         console.log('📊 Dashboard stats received:', response.data);
+        console.log('📊 Filter applied:', {
+          date: dateFilter,
+          period: periodFilter
+        });
         console.log('📊 Status counts:', {
           total: response.data.total,
           pending: response.data.pending,
@@ -97,126 +114,150 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     } finally {
       setStatsLoading(false);
     }
-  };
-
+  }, [dateFilter, periodFilter]);
+  
   // Fetch tickets from API
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       console.log('📡 Fetching tickets from API...');
       setLoading(true);
       setError(null);
-      const response = await repairOrdersApi.getAll();
+      
+      // Prepare filter parameters - only status filter for My Tickets
+      const filterParams: any = {};
+      if (statusFilter && statusFilter !== 'all') {
+        filterParams.status = statusFilter;
+      }
+      
+      console.log('📡 Filter params:', filterParams);
+      const response = await repairOrdersApi.getAll(filterParams);
       
       if (response.success) {
-        if (response.demo) {
-          console.log('⚠️ Demo mode - using sample data');
-          setError('Database connection failed - Demo mode');
-          setTickets([]);
-          if (!isConnected && !isDemoMode) {
-            forceRedirectToError();
-          }
-        } else {
-          console.log('✅ API response received:', response.data);
-          console.log('📊 Tickets count:', response.data.length);
-          console.log('📊 Tickets details:', response.data.map(t => ({
-            order_no: t.order_no,
-            subject: t.subject,
-            status: t.status,
-            last_date: t.last_date
-          })));
-          setTickets(response.data);
-          setError(null);
-        }
+        console.log('✅ API response received:', response.data);
+        console.log('📊 Tickets count:', response.data.length);
+        console.log('📊 Tickets details:', response.data.map(t => ({
+          order_no: t.order_no,
+          subject: t.subject,
+          status: t.status,
+          last_date: t.last_date
+        })));
+        setTickets(response.data);
+        setError(null);
+
       } else {
         console.error('❌ API response failed:', response.message);
         setError('Failed to fetch tickets');
-        if (response.error) {
-          forceRedirectToError();
-        }
       }
     } catch (err) {
       console.error('❌ Error fetching tickets:', err);
       setError('Failed to connect to server');
-      forceRedirectToError();
     } finally {
       setLoading(false);
       console.log('📡 Fetch tickets completed');
     }
-  };
+  }, [statusFilter]);
+  
+  // Update refs when functions change
+  useEffect(() => {
+    fetchTicketsRef.current = fetchTickets;
+    fetchDashboardStatsRef.current = fetchDashboardStats;
+  }, [fetchTickets, fetchDashboardStats]);
 
-  // Load tickets and stats on component mount
+  // Load tickets on component mount and when status filter changes
   useEffect(() => {
     fetchTickets();
+  }, [statusFilter]);
+
+  // Load dashboard stats on component mount and when date/period filters change
+  useEffect(() => {
     fetchDashboardStats();
+  }, [dateFilter, periodFilter]);
+
+  // WebSocket event handlers - use useCallback to prevent infinite re-renders
+  const handleOrderCreated = useCallback((data: any) => {
+    console.log('🔄 Real-time: Order created:', data);
+    const newTicket = data.data;
+    if (newTicket) {
+      // Add new ticket with fade-in animation
+      setTickets(prev => [newTicket, ...prev]);
+      // Update stats
+      setDashboardStats(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          total: prev.total + 1,
+          pending: prev.pending + (newTicket.status === 'pending' ? 1 : 0),
+          inProgress: prev.inProgress + (newTicket.status === 'in-progress' ? 1 : 0),
+          completed: prev.completed + (newTicket.status === 'completed' ? 1 : 0),
+          cancelled: prev.cancelled + (newTicket.status === 'cancelled' ? 1 : 0)
+        };
+      });
+    }
   }, []);
+
+  const handleOrderUpdated = useCallback((data: any) => {
+    console.log('🔄 Real-time: Order updated:', data);
+    const updatedTicket = data.data;
+    const orderNo = data.orderNo;
+    
+    if (updatedTicket && orderNo) {
+      setTickets(prev => prev.map(ticket => 
+        ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
+      ));
+      
+      // Update stats by recalculating
+      setDashboardStats(prev => {
+        if (!prev) return prev;
+        const updatedTickets = tickets.map(ticket => 
+          ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
+        );
+        return {
+          ...prev,
+          pending: updatedTickets.filter(t => t.status === 'pending').length,
+          inProgress: updatedTickets.filter(t => t.status === 'in-progress').length,
+          completed: updatedTickets.filter(t => t.status === 'completed').length,
+          cancelled: updatedTickets.filter(t => t.status === 'cancelled').length
+        };
+      });
+    }
+  }, [tickets]);
+
+  const handleOrderDeleted = useCallback((data: any) => {
+    console.log('🔄 Real-time: Order deleted:', data);
+    const orderNo = data.orderNo;
+    
+    if (orderNo) {
+      // Remove ticket with fade-out animation
+      setTickets(prev => prev.filter(ticket => ticket.order_no.toString() !== orderNo.toString()));
+      
+      // Update stats by recalculating
+      setDashboardStats(prev => {
+        if (!prev) return prev;
+        const remainingTickets = tickets.filter(ticket => ticket.order_no.toString() !== orderNo.toString());
+        return {
+          ...prev,
+          total: prev.total - 1,
+          pending: remainingTickets.filter(t => t.status === 'pending').length,
+          inProgress: remainingTickets.filter(t => t.status === 'in-progress').length,
+          completed: remainingTickets.filter(t => t.status === 'completed').length,
+          cancelled: remainingTickets.filter(t => t.status === 'cancelled').length
+        };
+      });
+    }
+  }, [tickets]);
 
   // Set up WebSocket event listeners for real-time updates
   useEffect(() => {
     console.log('🔄 Setting up WebSocket event listeners...');
     console.log('🔄 WebSocket connected:', wsConnected);
     console.log('🔄 Current tickets count:', tickets.length);
+    console.log('🔄 fetchTicketsRef.current:', fetchTicketsRef.current);
+    console.log('🔄 fetchDashboardStatsRef.current:', fetchDashboardStatsRef.current);
     
     if (!wsConnected) {
       console.log('🔄 WebSocket not connected, skipping event setup');
       return;
     }
-
-    // Handle new order created
-    const handleOrderCreated = (data: any) => {
-      console.log('🔄 Real-time: Order created:', data);
-      console.log('🔄 Order details:', {
-        orderNo: data.data?.order_no || data.orderNo,
-        subject: data.data?.subject,
-        status: data.data?.status
-      });
-      console.log('🔄 Before update - Tickets count:', tickets.length);
-      setIsUpdating(true);
-      setLastUpdateTime(new Date());
-      fetchTickets();
-      fetchDashboardStats();
-      setTimeout(() => {
-        setIsUpdating(false);
-        console.log('🔄 After update - Tickets count:', tickets.length);
-      }, 1000);
-    };
-
-    // Handle order updated
-    const handleOrderUpdated = (data: any) => {
-      console.log('🔄 Real-time: Order updated:', data);
-      console.log('🔄 Updated order details:', {
-        orderNo: data.orderNo || data.data?.order_no,
-        subject: data.data?.subject,
-        status: data.data?.status,
-        lastDate: data.data?.last_date
-      });
-      console.log('🔄 Current tickets count before update:', tickets.length);
-      console.log('🔄 Current tickets:', tickets.map(t => ({ order_no: t.order_no, status: t.status })));
-      console.log('🔄 Fetching updated data...');
-      setIsUpdating(true);
-      setLastUpdateTime(new Date());
-      fetchTickets();
-      fetchDashboardStats();
-      setTimeout(() => {
-        setIsUpdating(false);
-        console.log('🔄 After update - Tickets count:', tickets.length);
-        console.log('🔄 Updated tickets:', tickets.map(t => ({ order_no: t.order_no, status: t.status })));
-      }, 1000);
-    };
-
-    // Handle order deleted
-    const handleOrderDeleted = (data: any) => {
-      console.log('🔄 Real-time: Order deleted:', data);
-      console.log('🔄 Deleted order:', data.orderNo);
-      console.log('🔄 Before delete - Tickets count:', tickets.length);
-      setIsUpdating(true);
-      setLastUpdateTime(new Date());
-      fetchTickets();
-      fetchDashboardStats();
-      setTimeout(() => {
-        setIsUpdating(false);
-        console.log('🔄 After delete - Tickets count:', tickets.length);
-      }, 1000);
-    };
 
     console.log('🔄 Registering event listeners...');
     // Register event listeners
@@ -232,7 +273,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       offOrderUpdated(handleOrderUpdated);
       offOrderDeleted(handleOrderDeleted);
     };
-  }, [wsConnected]); // Only depend on wsConnected to prevent infinite loops
+  }, [wsConnected]);
 
   // Update ticket count when tickets change
   useEffect(() => {
@@ -304,14 +345,13 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     // Add notification for new ticket
     addNotification({
       type: 'success',
-              title: 'Equipment Order Created',
-        message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
+      title: 'Equipment Order Created',
+      message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
       ticketId: String(newTicket.order_no)
     });
   };
 
   const handleTicketUpdate = async (updatedTicket: TicketType) => {
-    const oldTicket = tickets.find(t => t.order_no === updatedTicket.order_no);
     setTickets(prev => prev.map(ticket => 
       ticket.order_no === updatedTicket.order_no ? updatedTicket : ticket
     ));
@@ -320,6 +360,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     fetchDashboardStats();
     
     // Add notification for ticket update
+    const oldTicket = tickets.find(t => t.order_no === updatedTicket.order_no);
     if (oldTicket && oldTicket.status !== updatedTicket.status) {
       const statusMessages = {
         'pending': 'is now pending review',
@@ -331,17 +372,18 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       addNotification({
         type: updatedTicket.status === 'completed' ? 'success' : 'info',
         title: 'Repair Order Status Updated',
-        message: `Your repair order ${updatedTicket.order_no} ${statusMessages[updatedTicket.status]}.`,
+        message: `Order ${updatedTicket.order_no} ${statusMessages[updatedTicket.status as keyof typeof statusMessages] || 'status has been updated'}.`,
         ticketId: String(updatedTicket.order_no)
       });
     }
   };
 
-  const handleTicketDelete = async (orderNo: string | number) => {
+    const handleTicketDelete = async (orderNo: string | number) => {
     try {
       const response = await repairOrdersApi.delete(orderNo);
       if (response.success) {
         setTickets(prev => prev.filter(ticket => ticket.order_no !== orderNo));
+        
         // Refresh dashboard stats when ticket is deleted
         fetchDashboardStats();
         addNotification({
@@ -380,6 +422,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   const handleTabChange = (tab: 'overview' | 'tickets' | 'new-ticket') => {
     setActiveTab(tab);
     window.location.hash = tab;
+  };
+
+  const handleStatusFilterChange = (newFilter: string) => {
+    setStatusFilter(newFilter);
   };
 
   // Listen for hash changes
@@ -426,7 +472,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <span className={`text-sm font-medium ${wsConnected ? 'text-green-600' : 'text-red-600'}`}>
                   {wsConnected ? 'Real-time Active' : 'Real-time Offline'}
                 </span>
@@ -478,21 +524,21 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        const currentDate = new Date(dateFilter);
-                        switch (periodFilter) {
-                          case 'daily':
-                            currentDate.setDate(currentDate.getDate() - 1);
-                            break;
-                          case 'monthly':
-                            currentDate.setMonth(currentDate.getMonth() - 1);
-                            break;
-                          case 'yearly':
-                            currentDate.setFullYear(currentDate.getFullYear() - 1);
-                            break;
-                        }
-                        setDateFilter(currentDate.toISOString().split('T')[0]);
-                      }}
+                                              onClick={() => {
+                          const currentDate = new Date(dateFilter);
+                          switch (periodFilter) {
+                            case 'daily':
+                              currentDate.setDate(currentDate.getDate() - 1);
+                              break;
+                            case 'monthly':
+                              currentDate.setMonth(currentDate.getMonth() - 1);
+                              break;
+                            case 'yearly':
+                              currentDate.setFullYear(currentDate.getFullYear() - 1);
+                              break;
+                          }
+                          setDateFilter(currentDate.toISOString().split('T')[0]);
+                        }}
                       className="h-8 w-8 p-0"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -506,21 +552,21 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        const currentDate = new Date(dateFilter);
-                        switch (periodFilter) {
-                          case 'daily':
-                            currentDate.setDate(currentDate.getDate() + 1);
-                            break;
-                          case 'monthly':
-                            currentDate.setMonth(currentDate.getMonth() + 1);
-                            break;
-                          case 'yearly':
-                            currentDate.setFullYear(currentDate.getFullYear() + 1);
-                            break;
-                        }
-                        setDateFilter(currentDate.toISOString().split('T')[0]);
-                      }}
+                                              onClick={() => {
+                          const currentDate = new Date(dateFilter);
+                          switch (periodFilter) {
+                            case 'daily':
+                              currentDate.setDate(currentDate.getDate() + 1);
+                              break;
+                            case 'monthly':
+                              currentDate.setMonth(currentDate.getMonth() + 1);
+                              break;
+                            case 'yearly':
+                              currentDate.setFullYear(currentDate.getFullYear() + 1);
+                              break;
+                          }
+                          setDateFilter(currentDate.toISOString().split('T')[0]);
+                        }}
                       className="h-8 w-8 p-0"
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -534,8 +580,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           {/* Stats Grid */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <div 
-              className="cursor-pointer transition-all hover:shadow-md"
-              onClick={() => setStatusFilter('all')}
+              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105"
+              onClick={() => handleStatusFilterChange('all')}
             >
               <StatsCard
                 title="Total Orders"
@@ -545,12 +591,11 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Ticket}
                 variant="primary"
                 className={statusFilter === 'all' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
-                isUpdating={isUpdating}
               />
             </div>
             <div 
-              className="cursor-pointer transition-all hover:shadow-md"
-              onClick={() => setStatusFilter('pending')}
+              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105"
+              onClick={() => handleStatusFilterChange('pending')}
             >
               <StatsCard
                 title="Pending Review"
@@ -559,12 +604,11 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Clock}
                 variant="warning"
                 className={statusFilter === 'pending' ? 'ring-2 ring-warning/20 shadow-lg' : ''}
-                isUpdating={isUpdating}
               />
             </div>
             <div 
-              className="cursor-pointer transition-all hover:shadow-md"
-              onClick={() => setStatusFilter('in-progress')}
+              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105"
+              onClick={() => handleStatusFilterChange('in-progress')}
             >
               <StatsCard
                 title="In Progress"
@@ -573,12 +617,11 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={TrendingUp}
                 variant="primary"
                 className={statusFilter === 'in-progress' ? 'ring-2 ring-primary/20 shadow-lg' : ''}
-                isUpdating={isUpdating}
               />
             </div>
             <div 
-              className="cursor-pointer transition-all hover:shadow-md"
-              onClick={() => setStatusFilter('completed')}
+              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105"
+              onClick={() => handleStatusFilterChange('completed')}
             >
               <StatsCard
                 title="Completed"
@@ -587,7 +630,6 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 icon={Calendar}
                 variant="success"
                 className={statusFilter === 'completed' ? 'ring-2 ring-success/20 shadow-lg' : ''}
-                isUpdating={isUpdating}
               />
             </div>
           </div>
@@ -597,13 +639,13 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
                 <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                  <Loader2 className="h-8 w-8 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">Loading charts...</p>
                 </div>
               </div>
               <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
                 <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                  <Loader2 className="h-8 w-8 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">Loading charts...</p>
                 </div>
               </div>
@@ -627,20 +669,27 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               type="pie"
             />
                 <ChartCard
-                  title="Monthly Trends"
+                  title={(() => {
+                    switch (periodFilter) {
+                      case 'daily':
+                        return 'Hourly Trends';
+                      case 'monthly':
+                        return 'Daily Trends';
+                      case 'yearly':
+                        return 'Monthly Trends';
+                      default:
+                        return 'Monthly Trends';
+                    }
+                  })()}
                   data={(() => {
+                    const trendsLabel = dashboardStats?.trendsLabel || 'month';
                     const chartData = (dashboardStats?.monthlyTrends || []).map(item => ({
-                      label: item.month,
+                      label: item[trendsLabel] || item.month || item.day || item.hour,
                       value: item.count
                     })) || [
-                      { label: 'Jan', value: 0 },
-                      { label: 'Feb', value: 0 },
-                      { label: 'Mar', value: 0 },
-                      { label: 'Apr', value: 0 },
-                      { label: 'May', value: 0 },
-                      { label: 'Jun', value: 0 }
+                      { label: 'No Data', value: 0 }
                     ];
-                    console.log('📊 Monthly Trends Chart Data:', chartData);
+                    console.log('📊 Dynamic Trends Chart Data:', chartData);
                     return chartData;
                   })()}
                   icon={BarChart3}
@@ -689,12 +738,20 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             </div>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTicketsForStats.map((ticket) => (
-                <TicketCard 
-                  key={ticket.order_no} 
-                  ticket={ticket}
-                  onTicketUpdate={handleTicketUpdate}
-                  onTicketDelete={handleTicketDelete}
-                />
+                <div 
+                  key={ticket.order_no}
+                  className=""
+                  style={{ 
+                    animationDelay: '0ms',
+                    animationDuration: '0ms'
+                  }}
+                >
+                  <TicketCard 
+                    ticket={ticket}
+                    onTicketUpdate={handleTicketUpdate}
+                    onTicketDelete={handleTicketDelete}
+                  />
+                </div>
               ))}
             </div>
             {filteredTicketsForStats.length === 0 && (
@@ -717,85 +774,72 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             </div>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+          {/* Search Bar - Full Width */}
+          <div className="w-full">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search orders by ID, subject, device, department..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
-            <div className="grid grid-cols-5 sm:flex sm:flex-row gap-1 sm:gap-3 flex-wrap">
-              <Button
-                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setStatusFilter('all')}
-                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
-              >
-                <span className="hidden sm:inline">All Status</span>
-                <span className="sm:hidden flex items-center justify-center">
-                  <List className="h-4 w-4 text-blue-600" />
-                </span>
-                ({tickets.length})
-              </Button>
-              <Button
-                variant={statusFilter === 'pending' ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setStatusFilter('pending')}
-                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
-              >
-                <span className="hidden sm:inline">Pending</span>
-                <span className="sm:hidden flex items-center justify-center">
-                  <Clock className="h-4 w-4 text-amber-500" />
-                </span>
-                ({tickets.filter(t => t.status === 'pending').length})
-              </Button>
-              <Button
-                variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setStatusFilter('in-progress')}
-                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
-              >
-                <span className="hidden sm:inline">In Progress</span>
-                <span className="sm:hidden flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                </span>
-                ({tickets.filter(t => t.status === 'in-progress').length})
-              </Button>
-              <Button
-                variant={statusFilter === 'completed' ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setStatusFilter('completed')}
-                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
-              >
-                <span className="hidden sm:inline">Completed</span>
-                <span className="sm:hidden flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </span>
-                ({tickets.filter(t => t.status === 'completed').length})
-              </Button>
-              <Button
-                variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setStatusFilter('cancelled')}
-                className="shadow-sm h-12 sm:h-9 text-sm sm:text-xs font-medium"
-              >
-                <span className="hidden sm:inline">Cancelled</span>
-                <span className="sm:hidden flex items-center justify-center">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                </span>
-                ({tickets.filter(t => t.status === 'cancelled').length})
-              </Button>
-            </div>
+          </div>
+
+          {/* Status Filter Buttons - Icon + Count for iPad */}
+          <div className="grid grid-cols-5 gap-2 md:gap-3">
+            <Button
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              size="default"
+              onClick={() => handleStatusFilterChange('all')}
+              className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <List className="h-4 w-4 text-blue-600" />
+              <span className="text-xs">({tickets.length})</span>
+            </Button>
+            <Button
+              variant={statusFilter === 'pending' ? 'default' : 'outline'}
+              size="default"
+              onClick={() => handleStatusFilterChange('pending')}
+              className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <Clock className="h-4 w-4 text-amber-500" />
+              <span className="text-xs">({tickets.filter(t => t.status === 'pending').length})</span>
+            </Button>
+            <Button
+              variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
+              size="default"
+              onClick={() => handleStatusFilterChange('in-progress')}
+              className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <Loader2 className="h-4 w-4 text-blue-500" />
+              <span className="text-xs">({tickets.filter(t => t.status === 'in-progress').length})</span>
+            </Button>
+            <Button
+              variant={statusFilter === 'completed' ? 'default' : 'outline'}
+              size="default"
+              onClick={() => handleStatusFilterChange('completed')}
+              className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-xs">({tickets.filter(t => t.status === 'completed').length})</span>
+            </Button>
+            <Button
+              variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
+              size="default"
+              onClick={() => handleStatusFilterChange('cancelled')}
+              className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <XCircle className="h-4 w-4 text-red-500" />
+              <span className="text-xs">({tickets.filter(t => t.status === 'cancelled').length})</span>
+            </Button>
           </div>
 
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <div className="rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading repair orders...</p>
             </div>
           )}
@@ -842,17 +886,23 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
           {/* Tickets Grid */}
           {!loading && !error && (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredTickets.map((ticket) => (
-                <TicketCard 
-                  key={ticket.order_no} 
-                  ticket={ticket}
-                  onTicketUpdate={handleTicketUpdate}
-                  onTicketDelete={handleTicketDelete}
-                  isHighlighted={highlightedTicketId === ticket.order_no}
-                  isUpdating={isUpdating}
-                  lastUpdateTime={lastUpdateTime}
-                />
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-3">
+              {filteredTickets.map((ticket, index) => (
+                <div 
+                  key={ticket.order_no}
+                  className=""
+                  style={{ 
+                    animationDelay: '0ms',
+                    animationDuration: '0ms'
+                  }}
+                >
+                  <TicketCard 
+                    ticket={ticket}
+                    onTicketUpdate={handleTicketUpdate}
+                    onTicketDelete={handleTicketDelete}
+                    isHighlighted={highlightedTicketId === ticket.order_no}  
+                  />
+                </div>
               ))}
             </div>
           )}

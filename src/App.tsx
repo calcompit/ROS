@@ -10,11 +10,8 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
-import DatabaseError from "./pages/DatabaseError";
 
 const queryClient = new QueryClient();
-
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -34,7 +31,6 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<LoginForm />} />
-                  <Route path="/database-error" element={<DatabaseError />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

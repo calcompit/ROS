@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useToast } from '@/hooks/use-toast';
 import { config } from '../config/environment.js';
@@ -35,10 +35,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
 
-  // Event handlers storage
-  const [orderCreatedHandlers, setOrderCreatedHandlers] = useState<((data: any) => void)[]>([]);
-  const [orderUpdatedHandlers, setOrderUpdatedHandlers] = useState<((data: any) => void)[]>([]);
-  const [orderDeletedHandlers, setOrderDeletedHandlers] = useState<((data: any) => void)[]>([]);
+  // Event handlers storage using refs to avoid closure issues
+  const orderCreatedHandlersRef = useRef<((data: any) => void)[]>([]);
+  const orderUpdatedHandlersRef = useRef<((data: any) => void)[]>([]);
+  const orderDeletedHandlersRef = useRef<((data: any) => void)[]>([]);
 
   useEffect(() => {
     const wsUrl = config.wsUrl;
@@ -46,18 +46,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     console.log('🔌 Connecting to WebSocket:', wsUrl);
     
     const newSocket = io(wsUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       timeout: 20000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       withCredentials: false,
-      extraHeaders: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      // For development, use ws:// protocol
+
+      // For development with self-signed certificate
       ...(import.meta.env.DEV && {
-        secure: false,
+        secure: true,
+        rejectUnauthorized: false,
+        transports: ['polling', 'websocket']
+      }),
+      // For production
+      ...(import.meta.env.PROD && {
+        secure: true,
+        rejectUnauthorized: false
       })
     });
 
@@ -66,7 +71,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       setIsConnected(true);
       
       // Join repair-orders room by default
-      newSocket.emit('join', 'repair-orders');
+      newSocket.emit('join-room', 'repair-orders');
       console.log('👥 Auto-joined repair-orders room');
     });
 
@@ -78,6 +83,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     newSocket.on('connect_error', (error) => {
       console.error('❌ WebSocket connection error:', error);
       setIsConnected(false);
+      
+      // Try to reconnect with different transport if websocket fails
+      if (error.message.includes('websocket')) {
+        console.log('🔄 Trying to reconnect with polling transport...');
+        setTimeout(() => {
+          newSocket.io.opts.transports = ['polling'];
+          newSocket.connect();
+        }, 2000);
+      }
     });
 
     newSocket.on('order-created', (data) => {
@@ -87,7 +101,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         description: `Order ${data.data?.order_no || data.orderNo} has been created`,
       });
       // Call all registered handlers
-      orderCreatedHandlers.forEach(handler => handler(data));
+      orderCreatedHandlersRef.current.forEach(handler => handler(data));
     });
 
     newSocket.on('order-updated', (data) => {
@@ -97,13 +111,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         data: data.data,
         action: data.action
       });
-      console.log('📡 Registered handlers count:', orderUpdatedHandlers.length);
+      console.log('📡 Registered handlers count:', orderUpdatedHandlersRef.current.length);
+      console.log('📡 All registered handlers:', orderUpdatedHandlersRef.current);
       toast({
         title: "✏️ Repair Order Updated",
         description: `Order ${data.orderNo || data.data?.order_no} has been updated`,
       });
       // Call all registered handlers
-      orderUpdatedHandlers.forEach((handler, index) => {
+      orderUpdatedHandlersRef.current.forEach((handler, index) => {
         console.log(`📡 Calling handler ${index + 1}:`, handler);
         try {
           handler(data);
@@ -120,7 +135,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         description: `Order ${data.orderNo} has been deleted`,
       });
       // Call all registered handlers
-      orderDeletedHandlers.forEach(handler => handler(data));
+      orderDeletedHandlersRef.current.forEach(handler => handler(data));
     });
 
     setSocket(newSocket);
@@ -133,7 +148,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   const joinRoom = (room: string) => {
     if (socket) {
-      socket.emit('join', room);
+      socket.emit('join-room', room);
       console.log(`👥 Joined room: ${room}`);
     }
   };
@@ -146,28 +161,28 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   };
 
   // Event handler functions - use useCallback to prevent infinite loops
-  const onOrderCreated = React.useCallback((callback: (data: any) => void) => {
-    setOrderCreatedHandlers(prev => [...prev, callback]);
+  const onOrderCreated = useCallback((callback: (data: any) => void) => {
+    orderCreatedHandlersRef.current = [...orderCreatedHandlersRef.current, callback];
   }, []);
 
-  const onOrderUpdated = React.useCallback((callback: (data: any) => void) => {
-    setOrderUpdatedHandlers(prev => [...prev, callback]);
+  const onOrderUpdated = useCallback((callback: (data: any) => void) => {
+    orderUpdatedHandlersRef.current = [...orderUpdatedHandlersRef.current, callback];
   }, []);
 
-  const onOrderDeleted = React.useCallback((callback: (data: any) => void) => {
-    setOrderDeletedHandlers(prev => [...prev, callback]);
+  const onOrderDeleted = useCallback((callback: (data: any) => void) => {
+    orderDeletedHandlersRef.current = [...orderDeletedHandlersRef.current, callback];
   }, []);
 
-  const offOrderCreated = React.useCallback((callback: (data: any) => void) => {
-    setOrderCreatedHandlers(prev => prev.filter(handler => handler !== callback));
+  const offOrderCreated = useCallback((callback: (data: any) => void) => {
+    orderCreatedHandlersRef.current = orderCreatedHandlersRef.current.filter(handler => handler !== callback);
   }, []);
 
-  const offOrderUpdated = React.useCallback((callback: (data: any) => void) => {
-    setOrderUpdatedHandlers(prev => prev.filter(handler => handler !== callback));
+  const offOrderUpdated = useCallback((callback: (data: any) => void) => {
+    orderUpdatedHandlersRef.current = orderUpdatedHandlersRef.current.filter(handler => handler !== callback);
   }, []);
 
-  const offOrderDeleted = React.useCallback((callback: (data: any) => void) => {
-    setOrderDeletedHandlers(prev => prev.filter(handler => handler !== callback));
+  const offOrderDeleted = useCallback((callback: (data: any) => void) => {
+    orderDeletedHandlersRef.current = orderDeletedHandlersRef.current.filter(handler => handler !== callback);
   }, []);
 
   const value: WebSocketContextType = {

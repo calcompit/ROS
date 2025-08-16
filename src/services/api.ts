@@ -81,6 +81,8 @@ export const repairOrdersApi = {
     emprepair?: string;
     limit?: number;
     offset?: number;
+    date?: string;
+    period?: string;
   }): Promise<ApiResponse<RepairOrder[]>> => {
     const searchParams = new URLSearchParams();
     if (params) {
@@ -126,7 +128,7 @@ export const repairOrdersApi = {
   },
 
   // Get dashboard statistics
-  getStats: async (): Promise<ApiResponse<{
+  getStats: async (params?: { date?: string; period?: string }): Promise<ApiResponse<{
     total: number;
     pending: number;
     inProgress: number;
@@ -137,7 +139,19 @@ export const repairOrdersApi = {
     monthlyTrends: Array<{ month: string; count: number }>;
     recentOrders: RepairOrder[];
   }>> => {
-    return apiRequest<any>('/repair-orders/stats/dashboard');
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value);
+        }
+      });
+    }
+    
+    const queryString = searchParams.toString();
+    const endpoint = `/repair-orders/stats/dashboard${queryString ? `?${queryString}` : ''}`;
+    
+    return apiRequest<any>(endpoint);
   },
 };
 
