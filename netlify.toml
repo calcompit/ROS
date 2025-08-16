@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  VITE_API_URL = "https://wk-svr01.tail878f89.ts.net/api"
+  VITE_WS_URL = "https://wk-svr01.tail878f89.ts.net"
+  VITE_APP_ENV = "production"
 
 [[redirects]]
   from = "/*"
