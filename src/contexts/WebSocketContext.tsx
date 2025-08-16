@@ -21,7 +21,19 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
   if (context === undefined) {
-    throw new Error('useWebSocket must be used within a WebSocketProvider');
+    // Return default values when not within WebSocketProvider
+    return {
+      socket: null,
+      isConnected: false,
+      joinRoom: () => {},
+      leaveRoom: () => {},
+      onOrderCreated: () => {},
+      onOrderUpdated: () => {},
+      onOrderDeleted: () => {},
+      offOrderCreated: () => {},
+      offOrderUpdated: () => {},
+      offOrderDeleted: () => {}
+    };
   }
   return context;
 };

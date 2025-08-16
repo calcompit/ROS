@@ -13,7 +13,13 @@ const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined
 export const useDatabase = () => {
   const context = useContext(DatabaseContext);
   if (context === undefined) {
-    throw new Error('useDatabase must be used within a DatabaseProvider');
+    // Return default values when not within DatabaseProvider
+    return {
+      isConnected: false,
+      isLoading: false,
+      error: null,
+      checkConnection: async () => {}
+    };
   }
   return context;
 };
