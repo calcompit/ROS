@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
 
@@ -15,7 +16,7 @@ interface ChartCardProps {
   className?: string;
 }
 
-const ChartCard = ({ 
+const ChartCard = React.memo(({ 
   title, 
   data, 
   icon: Icon, 
@@ -44,7 +45,7 @@ const ChartCard = ({
           </div>
           <div className="relative bg-muted/30 rounded-full h-2.5 overflow-hidden">
             <div 
-              className="h-2.5 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+              className="h-2.5 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
               style={{ 
                 width: `${(item.value / maxValue) * 100}%`,
                 backgroundColor: item.color || `hsl(${index * 60}, 70%, 60%)`
@@ -275,18 +276,18 @@ const ChartCard = ({
   };
 
   return (
-    <Card className={`shadow-card hover:shadow-hover transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-2 ${className}`}>
+    <Card className={`shadow-card hover:shadow-hover transition-all duration-500 ease-in-out animate-in fade-in-0 slide-in-from-bottom-2 ${className}`}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <Icon className="h-4 w-4 text-primary" />
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className={type === 'pie' ? 'pb-3' : type === 'line' ? 'pb-4' : 'pb-3'}>
+      <CardContent className={`transition-all duration-500 ease-in-out ${type === 'pie' ? 'pb-3' : type === 'line' ? 'pb-4' : 'pb-3'}`}>
         {renderChart()}
       </CardContent>
     </Card>
   );
 };
 
-export default ChartCard;
+export default React.memo(ChartCard);
