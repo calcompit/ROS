@@ -211,15 +211,15 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                 <SelectContent>
                   <SelectItem value="Computer" className="flex items-center gap-3 py-4">
                     <Monitor className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>Computer</span>
+                    Computer
                   </SelectItem>
                   <SelectItem value="Laptop" className="flex items-center gap-3 py-4">
                     <Laptop className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>Laptop</span>
+                    Laptop
                   </SelectItem>
                   <SelectItem value="Other" className="flex items-center gap-3 py-4">
                     <Smartphone className="h-5 w-5 text-purple-600 flex-shrink-0" />
-                    <span>Other</span>
+                    Other
                   </SelectItem>
                 </SelectContent>
               </Select>
