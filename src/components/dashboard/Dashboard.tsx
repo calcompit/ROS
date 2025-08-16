@@ -872,25 +872,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             </div>
           )}
 
-          {/* Empty State */}
-          {!error && !loading && tickets.length === 0 && (
-            <div className="text-center py-12">
-              <div className="mb-4">
-                <Ticket className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Repair Orders Found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  There are no repair orders in the database yet. Create your first repair order to get started.
-                </p>
-              </div>
-              <Button onClick={() => setActiveTab('new-ticket')} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create First Order
-              </Button>
-            </div>
-          )}
-
           {/* Tickets Grid */}
-          {!loading && !error && (
+          {!loading && !error && filteredTickets.length > 0 && (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-3">
               {filteredTickets.map((ticket, index) => (
                 <div 
@@ -912,17 +895,24 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             </div>
           )}
 
-          {filteredTickets.length === 0 && (
+          {/* Empty State - Show when no tickets found after filtering */}
+          {!loading && !error && filteredTickets.length === 0 && (
             <div className="text-center py-12">
               <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No tickets found</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {tickets.length === 0 ? 'No Repair Orders Found' : 'No tickets found'}
+              </h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'all' 
-                  ? 'Try adjusting your search or filter criteria.' 
-                  : 'You haven\'t created any tickets yet.'}
+                {tickets.length === 0 
+                  ? 'There are no repair orders in the database yet. Create your first repair order to get started.'
+                  : searchQuery || statusFilter !== 'all' 
+                    ? 'Try adjusting your search or filter criteria.' 
+                    : 'You haven\'t created any tickets yet.'
+                }
               </p>
-              <Button onClick={() => handleTabChange('new-ticket')}>
-                Create Your First Ticket
+              <Button onClick={() => handleTabChange('new-ticket')} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                {tickets.length === 0 ? 'Create First Order' : 'Create Your First Ticket'}
               </Button>
             </div>
           )}
