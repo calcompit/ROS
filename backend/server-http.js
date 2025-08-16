@@ -50,8 +50,19 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:8081',
   
-  // Local network (10.x.x.x)
+  // Windows backend IPs
+  'http://10.51.101.49:3000',
+  'http://10.51.101.49:5173',
+  'http://10.51.101.49:8081',
+  'http://100.73.2.100:3000',
+  'http://100.73.2.100:5173',
+  'http://100.73.2.100:8081',
+  
+  // Local network (10.x.x.x) - covers all 10.x.x.x IPs
   /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
+  
+  // Local network (100.x.x.x) - covers all 100.x.x.x IPs
+  /^https?:\/\/100\.\d+\.\d+\.\d+(:\d+)?$/,
   
   // Netlify domains
   'https://calcompit-ros.netlify.app',
