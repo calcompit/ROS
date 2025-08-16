@@ -761,6 +761,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                       { label: 'No Data', value: 0 }
                     ];
                     console.log('📊 Dynamic Trends Chart Data:', chartData);
+                    console.log('📊 Monthly Trends Raw Data:', dashboardStats?.monthlyTrends);
                     return chartData;
                   })()}
                   icon={BarChart3}
@@ -773,21 +774,31 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                   <ChartCard
                     title="Department Distribution"
-                    data={(dashboardStats?.byDepartment || []).map((dept, index) => ({
-                      label: dept.dept,
-                      value: dept.count,
-                      color: `hsl(${index * 60}, 70%, 60%)`
-                    }))}
+                    data={(() => {
+                      const chartData = (dashboardStats?.byDepartment || []).map((dept, index) => ({
+                        label: dept.dept,
+                        value: dept.count,
+                        color: `hsl(${index * 60}, 70%, 60%)`
+                      }));
+                      console.log('📊 Department Distribution Chart Data:', chartData);
+                      console.log('📊 Department Raw Data:', dashboardStats?.byDepartment);
+                      return chartData;
+                    })()}
                     icon={Activity}
                     type="bar"
                   />
                   <ChartCard
                     title="Device Type Distribution"
-                    data={(dashboardStats?.byDeviceType || []).map((device, index) => ({
-                      label: device.device_type,
-                      value: device.count,
-                      color: `hsl(${index * 45 + 180}, 70%, 60%)`
-                    }))}
+                    data={(() => {
+                      const chartData = (dashboardStats?.byDeviceType || []).map((device, index) => ({
+                        label: device.device_type,
+                        value: device.count,
+                        color: `hsl(${index * 45 + 180}, 70%, 60%)`
+                      }));
+                      console.log('📊 Device Type Distribution Chart Data:', chartData);
+                      console.log('📊 Device Type Raw Data:', dashboardStats?.byDeviceType);
+                      return chartData;
+                    })()}
                     icon={Activity}
                     type="pie"
                   />
