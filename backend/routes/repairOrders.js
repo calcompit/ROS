@@ -10,6 +10,16 @@ const emitRealtimeUpdate = (req, event, data) => {
     console.log(`📡 Emitting ${event} to repair-orders room`);
     console.log(`📡 Event data:`, data);
     console.log(`📡 Connected clients:`, io.sockets.sockets.size);
+    console.log(`📡 Rooms:`, io.sockets.adapter.rooms);
+    
+    // Get all clients in repair-orders room
+    const room = io.sockets.adapter.rooms.get('repair-orders');
+    if (room) {
+      console.log(`📡 Clients in repair-orders room:`, Array.from(room));
+    } else {
+      console.log(`📡 No clients in repair-orders room`);
+    }
+    
     io.to('repair-orders').emit(event, data);
     console.log(`✅ Successfully emitted ${event}:`, data);
   } else {
@@ -206,11 +216,15 @@ router.post('/', async (req, res) => {
       if (orderResult.success && orderResult.data.length > 0) {
         const newOrder = orderResult.data[0];
         
+        console.log('📡 About to emit order-created event for order:', newOrder.order_no);
+        
         // Emit real-time update
         emitRealtimeUpdate(req, 'order-created', {
           data: newOrder,
           action: 'created'
         });
+        
+        console.log('📡 Order-created event emitted, sending response');
         
         res.status(201).json({
           success: true,
@@ -218,6 +232,7 @@ router.post('/', async (req, res) => {
           demo: result.demo
         });
       } else {
+        console.log('📡 No order data returned, sending success message');
         res.status(201).json({
           success: true,
           message: 'Repair order created successfully',
