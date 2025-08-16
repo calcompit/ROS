@@ -10,6 +10,7 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
+import { DebugEnv } from "@/components/ui/debug-env";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <DebugEnv />
           <BrowserRouter
             future={{
               v7_startTransition: true,

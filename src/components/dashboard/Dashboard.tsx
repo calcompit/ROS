@@ -124,7 +124,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       setError(null);
       
       // Always fetch all tickets - filtering will be done on frontend
-      const response = await repairOrdersApi.getAll({});
+      console.log('🔍 Fetching with limit: 1000');
+      const response = await repairOrdersApi.getAll({ limit: 1000 }); // Fetch more than default limit
       
       if (response.success) {
         console.log('✅ API response received:', response.data);
@@ -202,30 +203,57 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const handleOrderUpdated = useCallback((data: any) => {
     console.log('🔄 Real-time: Order updated:', data);
+    console.log('🔄 Updated ticket data:', data.data);
+    console.log('🔄 Order number:', data.orderNo);
+    
     const updatedTicket = data.data;
     const orderNo = data.orderNo;
     
     if (updatedTicket && orderNo) {
-      setTickets(prev => prev.map(ticket => 
-        ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
-      ));
+      console.log('🔄 Processing order update for order:', orderNo);
+      console.log('🔄 New status:', updatedTicket.status);
       
-      // Update stats by recalculating
-      setDashboardStats(prev => {
-        if (!prev) return prev;
-        const updatedTickets = tickets.map(ticket => 
+      // Update tickets and stats together
+      setTickets(prev => {
+        console.log('🔄 Previous tickets count:', prev.length);
+        console.log('🔄 Previous tickets:', prev.map(t => ({ order_no: t.order_no, status: t.status })));
+        
+        const newTickets = prev.map(ticket => 
           ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
         );
-        return {
-          ...prev,
-          pending: updatedTickets.filter(t => t.status === 'pending').length,
-          inProgress: updatedTickets.filter(t => t.status === 'in-progress').length,
-          completed: updatedTickets.filter(t => t.status === 'completed').length,
-          cancelled: updatedTickets.filter(t => t.status === 'cancelled').length
-        };
+        
+        console.log('🔄 New tickets count:', newTickets.length);
+        console.log('🔄 New tickets:', newTickets.map(t => ({ order_no: t.order_no, status: t.status })));
+        
+        // Update stats immediately with new tickets
+        setDashboardStats(prevStats => {
+          if (!prevStats) return prevStats;
+          
+          const pendingCount = newTickets.filter(t => t.status === 'pending').length;
+          const inProgressCount = newTickets.filter(t => t.status === 'in-progress').length;
+          const completedCount = newTickets.filter(t => t.status === 'completed').length;
+          const cancelledCount = newTickets.filter(t => t.status === 'cancelled').length;
+          
+          console.log('🔄 Status counts:', { pending: pendingCount, inProgress: inProgressCount, completed: completedCount, cancelled: cancelledCount });
+          
+          const newStats = {
+            ...prevStats,
+            pending: pendingCount,
+            inProgress: inProgressCount,
+            completed: completedCount,
+            cancelled: cancelledCount
+          };
+          
+          console.log('🔄 Updated dashboard stats:', newStats);
+          console.log('🔄 In-progress count:', newStats.inProgress);
+          
+          return newStats;
+        });
+        
+        return newTickets;
       });
     }
-  }, [tickets]);
+  }, []);
 
   const handleOrderDeleted = useCallback((data: any) => {
     console.log('🔄 Real-time: Order deleted:', data);
@@ -233,23 +261,28 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     
     if (orderNo) {
       // Remove ticket with fade-out animation
-      setTickets(prev => prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString()));
-      
-      // Update stats by recalculating
-      setDashboardStats(prev => {
-        if (!prev) return prev;
-        const remainingTickets = tickets.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
-        return {
-          ...prev,
-          total: prev.total - 1,
-          pending: remainingTickets.filter(t => t.status === 'pending').length,
-          inProgress: remainingTickets.filter(t => t.status === 'in-progress').length,
-          completed: remainingTickets.filter(t => t.status === 'completed').length,
-          cancelled: remainingTickets.filter(t => t.status === 'cancelled').length
-        };
+      setTickets(prev => {
+        const newTickets = prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
+        
+        // Update stats after tickets are updated
+        setTimeout(() => {
+          setDashboardStats(prevStats => {
+            if (!prevStats) return prevStats;
+            return {
+              ...prevStats,
+              total: prevStats.total - 1,
+              pending: newTickets.filter(t => t.status === 'pending').length,
+              inProgress: newTickets.filter(t => t.status === 'in-progress').length,
+              completed: newTickets.filter(t => t.status === 'completed').length,
+              cancelled: newTickets.filter(t => t.status === 'cancelled').length
+            };
+          });
+        }, 0);
+        
+        return newTickets;
       });
     }
-  }, [tickets]);
+  }, []);
 
   // Set up WebSocket event listeners for real-time updates
   useEffect(() => {
@@ -288,7 +321,26 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     }
   }, [tickets, onTicketCountUpdate]);
 
+
+
   const filteredTickets = useMemo(() => {
+    // If we have dashboard stats, use them to ensure consistency
+    if (dashboardStats) {
+      return tickets.filter(ticket => {
+        // Skip tickets without order_no
+        if (!ticket.order_no) return false;
+        
+        const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             ticket.dept.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             ticket.emp.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+    }
+    
+    // Fallback to original logic if no dashboard stats
     return tickets.filter(ticket => {
       // Skip tickets without order_no
       if (!ticket.order_no) return false;
@@ -301,7 +353,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [tickets, searchQuery, statusFilter]);
+  }, [tickets, searchQuery, statusFilter, dashboardStats]);
 
   // Filter tickets by date and period
   const getFilteredTickets = () => {
@@ -341,6 +393,22 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     completed: filteredTicketsForStats.filter(t => t.status === 'completed').length,
     cancelled: filteredTicketsForStats.filter(t => t.status === 'cancelled').length
   };
+
+  // For My Tickets tab, ensure we use the same data source as dashboard stats
+  const ticketsForMyTickets = useMemo(() => {
+    // Always use tickets array (which should contain all orders)
+    return tickets.filter(ticket => {
+      if (!ticket.order_no) return false;
+      
+      const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.dept.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ticket.emp.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tickets, searchQuery, statusFilter]);
 
   const handleNewTicket = (newTicket: TicketType) => {
     // Only add ticket if it has order_no
@@ -789,8 +857,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <List className="h-4 w-4 text-blue-600" />
-              <span className="text-xs xl:hidden">({tickets.length})</span>
-              <span className="hidden xl:inline text-sm">All ({tickets.length})</span>
+              <span className="text-xs xl:hidden">({stats.total})</span>
+              <span className="hidden xl:inline text-sm">All ({stats.total})</span>
             </Button>
             <Button
               variant={statusFilter === 'pending' ? 'default' : 'outline'}
@@ -799,8 +867,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <Clock className="h-4 w-4 text-amber-500" />
-              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'pending').length})</span>
-              <span className="hidden xl:inline text-sm">Pending ({tickets.filter(t => t.status === 'pending').length})</span>
+              <span className="text-xs xl:hidden">({stats.pending})</span>
+              <span className="hidden xl:inline text-sm">Pending ({stats.pending})</span>
             </Button>
             <Button
               variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
@@ -809,8 +877,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <Loader2 className="h-4 w-4 text-blue-500" />
-              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'in-progress').length})</span>
-              <span className="hidden xl:inline text-sm">In Progress ({tickets.filter(t => t.status === 'in-progress').length})</span>
+              <span className="text-xs xl:hidden">({stats.inProgress})</span>
+              <span className="hidden xl:inline text-sm">In Progress ({stats.inProgress})</span>
             </Button>
             <Button
               variant={statusFilter === 'completed' ? 'default' : 'outline'}
@@ -819,8 +887,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'completed').length})</span>
-              <span className="hidden xl:inline text-sm">Completed ({tickets.filter(t => t.status === 'completed').length})</span>
+              <span className="text-xs xl:hidden">({stats.completed})</span>
+              <span className="hidden xl:inline text-sm">Completed ({stats.completed})</span>
             </Button>
             <Button
               variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
@@ -829,8 +897,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <XCircle className="h-4 w-4 text-red-500" />
-              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'cancelled').length})</span>
-              <span className="hidden xl:inline text-sm">Cancelled ({tickets.filter(t => t.status === 'cancelled').length})</span>
+              <span className="text-xs xl:hidden">({stats.cancelled})</span>
+              <span className="hidden xl:inline text-sm">Cancelled ({stats.cancelled})</span>
             </Button>
           </div>
 
@@ -866,9 +934,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           )}
 
           {/* Tickets Grid */}
-          {!loading && !error && filteredTickets.length > 0 && (
+          {!loading && !error && ticketsForMyTickets.length > 0 && (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-3">
-              {filteredTickets.map((ticket, index) => (
+              {ticketsForMyTickets.map((ticket, index) => (
                 <div 
                   key={ticket.order_no}
                   className=""
@@ -889,7 +957,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           )}
 
           {/* Empty State - Show when no tickets found after filtering */}
-          {!loading && !error && filteredTickets.length === 0 && (
+          {!loading && !error && ticketsForMyTickets.length === 0 && (
             <div className="text-center py-12">
               <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
