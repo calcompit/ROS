@@ -305,6 +305,8 @@ router.put('/:id', async (req, res) => {
       if (orderResult.success && orderResult.data.length > 0) {
         const updatedOrder = orderResult.data[0];
         
+        console.log('📡 About to emit order-updated event for order:', id);
+        
         // Emit real-time update
         emitRealtimeUpdate(req, 'order-updated', {
           orderNo: id,
@@ -312,12 +314,15 @@ router.put('/:id', async (req, res) => {
           action: 'updated'
         });
         
+        console.log('📡 Order-updated event emitted, sending response');
+        
         res.json({
           success: true,
           data: updatedOrder,
           demo: result.demo
         });
       } else {
+        console.log('📡 No order data returned after update, sending success message');
         res.json({
           success: true,
           message: 'Repair order updated successfully',
