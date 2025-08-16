@@ -209,15 +209,15 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Computer" className="flex items-center gap-2 py-2">
+                  <SelectItem value="Computer" className="flex items-center gap-2 py-3 h-12">
                     <Monitor className="h-4 w-4 text-blue-600" />
                     Computer
                   </SelectItem>
-                  <SelectItem value="Laptop" className="flex items-center gap-2 py-2">
+                  <SelectItem value="Laptop" className="flex items-center gap-2 py-3 h-12">
                     <Laptop className="h-4 w-4 text-green-600" />
                     Laptop
                   </SelectItem>
-                  <SelectItem value="Other" className="flex items-center gap-2 py-2">
+                  <SelectItem value="Other" className="flex items-center gap-2 py-3 h-12">
                     <Smartphone className="h-4 w-4 text-purple-600" />
                     Other
                   </SelectItem>
