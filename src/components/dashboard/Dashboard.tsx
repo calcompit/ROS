@@ -222,12 +222,12 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     
     if (orderNo) {
       // Remove ticket with fade-out animation
-      setTickets(prev => prev.filter(ticket => ticket.order_no.toString() !== orderNo.toString()));
+      setTickets(prev => prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString()));
       
       // Update stats by recalculating
       setDashboardStats(prev => {
         if (!prev) return prev;
-        const remainingTickets = tickets.filter(ticket => ticket.order_no.toString() !== orderNo.toString());
+        const remainingTickets = tickets.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
         return {
           ...prev,
           total: prev.total - 1,
@@ -279,6 +279,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const filteredTickets = useMemo(() => {
     return tickets.filter(ticket => {
+      // Skip tickets without order_no
+      if (!ticket.order_no) return false;
+      
       const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
                            ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -347,7 +350,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const handleTicketUpdate = async (updatedTicket: TicketType) => {
     setTickets(prev => prev.map(ticket => 
-      ticket.order_no === updatedTicket.order_no ? updatedTicket : ticket
+      ticket.order_no && updatedTicket.order_no && ticket.order_no === updatedTicket.order_no ? updatedTicket : ticket
     ));
     
     // Refresh dashboard stats when ticket is updated

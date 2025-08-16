@@ -116,7 +116,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         
         toast({
           title: "Repair order created successfully!",
-          description: `Your repair order ${response.data.order_no} has been submitted and is pending review.`,
+          description: `Your repair order ${response.data?.order_no || 'has been submitted'} and is pending review.`,
         });
 
         // Reset form
