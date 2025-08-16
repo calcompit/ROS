@@ -5,20 +5,21 @@ const router = express.Router();
 
 // Function to emit real-time updates
 const emitRealtimeUpdate = (req, event, data) => {
+  console.log(`🔍 emitRealtimeUpdate called with event: ${event}`);
+  console.log(`🔍 Request app:`, req.app ? 'Available' : 'Not available');
+  
   const io = req.app.get('io');
+  console.log(`🔍 IO instance:`, io ? 'Available' : 'Not available');
+  
   if (io) {
     console.log(`📡 Emitting ${event} to repair-orders room`);
     console.log(`📡 Event data:`, data);
     console.log(`📡 Connected clients:`, io.sockets.sockets.size);
-    console.log(`📡 Rooms:`, io.sockets.adapter.rooms);
     
-    // Get all clients in repair-orders room
+    // Get clients in repair-orders room
     const room = io.sockets.adapter.rooms.get('repair-orders');
-    if (room) {
-      console.log(`📡 Clients in repair-orders room:`, Array.from(room));
-    } else {
-      console.log(`📡 No clients in repair-orders room`);
-    }
+    const clientsInRoom = room ? Array.from(room) : [];
+    console.log(`📡 Clients in repair-orders room:`, clientsInRoom);
     
     io.to('repair-orders').emit(event, data);
     console.log(`✅ Successfully emitted ${event}:`, data);
@@ -208,7 +209,7 @@ router.post('/', async (req, res) => {
       // Get the created order
       const getOrderQuery = `
         SELECT TOP 1 * FROM TBL_IT_PCMAINTENANCE 
-        WHERE subject = ? AND name = ? AND dept = ? AND emp = ?
+        WHERE subject = ? AND name = ? AND dept = ? AND emp = ? 
         ORDER BY insert_date DESC
       `;
       
@@ -216,16 +217,15 @@ router.post('/', async (req, res) => {
       
       if (orderResult.success && orderResult.data.length > 0) {
         const newOrder = orderResult.data[0];
-        
-        console.log('📡 About to emit order-created event for order:', newOrder.order_no);
+        console.log(`📝 New order created:`, newOrder);
         
         // Emit real-time update
+        console.log(`📡 About to emit order-created event for order:`, newOrder.order_no);
         emitRealtimeUpdate(req, 'order-created', {
+          orderNo: newOrder.order_no,
           data: newOrder,
           action: 'created'
         });
-        
-        console.log('📡 Order-created event emitted, sending response');
         
         res.status(201).json({
           success: true,
@@ -233,7 +233,6 @@ router.post('/', async (req, res) => {
           demo: result.demo
         });
       } else {
-        console.log('📡 No order data returned, sending success message');
         res.status(201).json({
           success: true,
           message: 'Repair order created successfully',
@@ -305,8 +304,6 @@ router.put('/:id', async (req, res) => {
       if (orderResult.success && orderResult.data.length > 0) {
         const updatedOrder = orderResult.data[0];
         
-        console.log('📡 About to emit order-updated event for order:', id);
-        
         // Emit real-time update
         emitRealtimeUpdate(req, 'order-updated', {
           orderNo: id,
@@ -314,15 +311,12 @@ router.put('/:id', async (req, res) => {
           action: 'updated'
         });
         
-        console.log('📡 Order-updated event emitted, sending response');
-        
         res.json({
           success: true,
           data: updatedOrder,
           demo: result.demo
         });
       } else {
-        console.log('📡 No order data returned after update, sending success message');
         res.json({
           success: true,
           message: 'Repair order updated successfully',
