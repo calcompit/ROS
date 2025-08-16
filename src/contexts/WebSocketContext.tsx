@@ -41,6 +41,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const orderDeletedHandlersRef = useRef<((data: any) => void)[]>([]);
 
   useEffect(() => {
+    // Only connect WebSocket if we're not on login page
+    if (window.location.pathname === '/login') {
+      return;
+    }
+
     const wsUrl = config.wsUrl;
     
     console.log('🔌 Connecting to WebSocket:', wsUrl);

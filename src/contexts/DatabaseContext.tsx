@@ -54,7 +54,12 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
 
 
   useEffect(() => {
-    checkConnection();
+    // Only check connection if we're not on login page
+    if (window.location.pathname !== '/login') {
+      checkConnection();
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   const value: DatabaseContextType = {
