@@ -152,14 +152,16 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-6">
             <Label htmlFor="edit-subject">Issue Subject</Label>
-            {loadingFields.subject && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Updating...
-              </div>
-            )}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {loadingFields.subject && (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Updating...
+                </>
+              )}
+            </div>
           </div>
           <Input
             id="edit-subject"
@@ -174,11 +176,10 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         </div>
         
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-6">
             <Label htmlFor="edit-deviceType">Device Type</Label>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-0">
-              <Loader2 className="h-3 w-3" />
-              Updating...
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {/* Placeholder for consistent layout */}
             </div>
           </div>
           <Select 
