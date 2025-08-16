@@ -33,7 +33,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
     
     try {
       // Check database status
-      const statusResponse = await fetch('http://localhost:3001/api/database/status');
+      const statusResponse = await fetch('http://10.51.101.49:3001/api/database/status');
       const statusData = await statusResponse.json();
       
       if (statusData.success && statusData.data.connected) {
