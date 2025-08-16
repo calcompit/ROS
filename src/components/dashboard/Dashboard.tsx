@@ -879,7 +879,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                     : 'You haven\'t created any tickets yet.'
                 }
               </p>
-              <Button onClick={() => handleTabChange('new-ticket')} className="flex items-center gap-2">
+              <Button onClick={() => handleTabChange('new-ticket')} className="flex items-center gap-2 mx-auto">
                 <Plus className="h-4 w-4" />
                 {tickets.length === 0 ? 'Create First Order' : 'Create Your First Ticket'}
               </Button>
