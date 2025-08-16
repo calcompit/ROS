@@ -124,7 +124,6 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       setError(null);
       
       // Always fetch all tickets - filtering will be done on frontend
-      console.log('🔍 Fetching with limit: 1000');
       const response = await repairOrdersApi.getAll({ limit: 1000 }); // Fetch more than default limit
       
       if (response.success) {
