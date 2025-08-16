@@ -164,24 +164,19 @@ const startServer = async () => {
       console.log('❌ Database connection failed');
     }
     
-    // Use configured IP or get local IP address
-    const configuredIP = process.env.SERVER_IP || '10.51.101.49';
-    let localIP = configuredIP;
+    // Get local IP address
+    const { networkInterfaces } = await import('os');
+    const nets = networkInterfaces();
+    let localIP = 'localhost';
     
-    // If no configured IP, detect from network interfaces
-    if (!process.env.SERVER_IP) {
-      const { networkInterfaces } = await import('os');
-      const nets = networkInterfaces();
-      
-      for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-          if (net.family === 'IPv4' && !net.internal) {
-            localIP = net.address;
-            break;
-          }
+    for (const name of Object.keys(nets)) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          localIP = net.address;
+          break;
         }
-        if (localIP !== configuredIP) break;
       }
+      if (localIP !== 'localhost') break;
     }
     
     // Create HTTP server

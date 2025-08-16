@@ -58,3 +58,20 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+.env.local.backup*
+.env.backup*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.backup
+*.bak
