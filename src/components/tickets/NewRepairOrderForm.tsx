@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Ticket } from './TicketCard';
 import { subjectsApi, departmentsApi, repairOrdersApi } from '@/services/api';
 import { useDatabase } from '@/contexts/DatabaseContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 
 interface NewRepairOrderFormProps {
   onSubmit?: (ticket: Ticket) => void;
@@ -22,6 +23,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
 
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { socket } = useWebSocket();
 
   
   const [formData, setFormData] = useState({
@@ -113,6 +115,15 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
 
       if (response.success) {
         onSubmit?.(response.data);
+        
+        // Emit WebSocket event for real-time updates
+        if (socket) {
+          console.log('📡 Emitting order-created event:', response.data);
+          socket.emit('order-created', {
+            data: response.data,
+            orderNo: response.data?.order_no
+          });
+        }
         
         toast({
           title: "Repair order created successfully!",
