@@ -332,20 +332,30 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   };
 
   const handleNewTicket = (newTicket: TicketType) => {
-    setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
-    setActiveTab('overview');
-    window.location.hash = 'overview';
-    
-    // Refresh dashboard stats when new ticket is created
-    fetchDashboardStats();
-    
-    // Add notification for new ticket
-    addNotification({
-      type: 'success',
-      title: 'Equipment Order Created',
-      message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
-      ticketId: String(newTicket.order_no)
-    });
+    // Only add ticket if it has order_no
+    if (newTicket && newTicket.order_no) {
+      setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
+      setActiveTab('overview');
+      window.location.hash = 'overview';
+      
+      // Refresh dashboard stats when new ticket is created
+      fetchDashboardStats();
+      
+      // Add notification for new ticket
+      addNotification({
+        type: 'success',
+        title: 'Equipment Order Created',
+        message: `Your equipment order ${newTicket.order_no} has been created and is pending review.`,
+        ticketId: String(newTicket.order_no)
+      });
+    } else {
+      console.error('New ticket missing order_no:', newTicket);
+      addNotification({
+        type: 'error',
+        title: 'Ticket Creation Error',
+        message: 'Failed to create ticket - missing order number.',
+      });
+    }
   };
 
   const handleTicketUpdate = async (updatedTicket: TicketType) => {
