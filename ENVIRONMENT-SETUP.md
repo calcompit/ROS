@@ -9,7 +9,7 @@
 ./switch-env.sh localhost 3001
 
 # สลับไป Windows Backend (Backend บน Windows)
-./switch-env.sh 100.73.2.100 3001
+./switch-env.sh 10.51.101.49 3001
 
 # สลับไป Production
 ./switch-env.sh wk-svr01.tail878f89.ts.net 443
@@ -47,7 +47,7 @@ VITE_APP_ENV=development
 1. Push โค้ดไป Git
 2. บน Windows: Pull โค้ด
 3. รัน backend บน Windows: `start-windows.bat` หรือ `node server-http.js`
-4. บน MacBook: `./switch-env.sh 100.73.2.100 3001`
+4. บน MacBook: `./switch-env.sh 10.51.101.49 3001`
 5. รัน frontend: `npm run dev`
 
 ## Windows Setup
@@ -67,7 +67,7 @@ node server-http.js
 
 ### Windows Backend จะรันที่:
 - **Local**: http://localhost:3001
-- **Network**: http://100.73.2.100:3001
+- **Network**: http://10.51.101.49:3001
 - **Health Check**: http://localhost:3001/health
 
 ## การแสดง Environment Status

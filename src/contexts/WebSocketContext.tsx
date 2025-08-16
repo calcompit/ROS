@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useToast } from '@/hooks/use-toast';
-import { config } from '../config/environment.js';
+import { config, getWsUrl } from '../config/environment.js';
 
 interface WebSocketContextType {
   socket: Socket | null;
@@ -58,7 +58,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       return;
     }
 
-    const wsUrl = config.wsUrl;
+    const wsUrl = getWsUrl();
     
     console.log('🔌 Connecting to WebSocket:', wsUrl);
     

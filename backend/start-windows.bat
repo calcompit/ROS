@@ -11,12 +11,12 @@ echo.
 echo 🚀 Starting backend server...
 echo 📍 Backend will be available at:
 echo    - Local: http://localhost:3001
-echo    - Network: http://100.73.2.100:3001
+echo    - Network: http://10.51.101.49:3001
 echo    - Health check: http://localhost:3001/health
 echo.
 
 echo ⚠️  Make sure to update frontend to use:
-echo    ./switch-env.sh 100.73.2.100 3001
+echo    ./switch-env.sh 10.51.101.49 3001
 echo.
 
 node server-http.js
