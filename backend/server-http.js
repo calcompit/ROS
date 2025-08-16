@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { testConnection, initializeDemoDatabase } from './config/database.js';
+import { testConnection } from './config/database.js';
 import { Server } from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +19,7 @@ import notificationRoutes from './routes/notifications.js';
 import subjectRoutes from './routes/subjects.js';
 import departmentRoutes from './routes/departments.js';
 import equipmentRoutes from './routes/equipment.js';
+import databaseRoutes from './routes/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -89,6 +90,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/equipment', equipmentRoutes);
+app.use('/api/database', databaseRoutes);
 
 // Global error handler
 app.use((error, req, res, next) => {
@@ -119,8 +121,7 @@ const startServer = async () => {
     const dbConnected = await testConnection();
     
     if (!dbConnected) {
-      console.log('⚠️ Database connection failed, initializing demo database...');
-      await initializeDemoDatabase();
+      console.log('❌ Database connection failed');
     }
     
     // Get local IP address
@@ -189,7 +190,7 @@ const startServer = async () => {
       console.log(`🔌 WebSocket URL: ws://${localIP}:${PORT}`);
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
       if (!dbConnected) {
-        console.log(`⚠️ Demo mode: Update .env with correct database settings`);
+        console.log(`❌ Database connection failed`);
       }
     });
     
