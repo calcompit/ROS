@@ -787,7 +787,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             </div>
           </div>
 
-          {/* Status Filter Buttons - Icon + Count for iPad */}
+          {/* Status Filter Buttons - Icon + Count for iPad, Text for Desktop */}
           <div className="grid grid-cols-5 gap-2 md:gap-3">
             <Button
               variant={statusFilter === 'all' ? 'default' : 'outline'}
@@ -796,7 +796,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <List className="h-4 w-4 text-blue-600" />
-              <span className="text-xs">({tickets.length})</span>
+              <span className="text-xs xl:hidden">({tickets.length})</span>
+              <span className="hidden xl:inline text-sm">All ({tickets.length})</span>
             </Button>
             <Button
               variant={statusFilter === 'pending' ? 'default' : 'outline'}
@@ -805,7 +806,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <Clock className="h-4 w-4 text-amber-500" />
-              <span className="text-xs">({tickets.filter(t => t.status === 'pending').length})</span>
+              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'pending').length})</span>
+              <span className="hidden xl:inline text-sm">Pending ({tickets.filter(t => t.status === 'pending').length})</span>
             </Button>
             <Button
               variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
@@ -814,7 +816,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <Loader2 className="h-4 w-4 text-blue-500" />
-              <span className="text-xs">({tickets.filter(t => t.status === 'in-progress').length})</span>
+              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'in-progress').length})</span>
+              <span className="hidden xl:inline text-sm">In Progress ({tickets.filter(t => t.status === 'in-progress').length})</span>
             </Button>
             <Button
               variant={statusFilter === 'completed' ? 'default' : 'outline'}
@@ -823,7 +826,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-xs">({tickets.filter(t => t.status === 'completed').length})</span>
+              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'completed').length})</span>
+              <span className="hidden xl:inline text-sm">Completed ({tickets.filter(t => t.status === 'completed').length})</span>
             </Button>
             <Button
               variant={statusFilter === 'cancelled' ? 'default' : 'outline'}
@@ -832,7 +836,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
               className="shadow-sm h-12 md:h-10 text-xs font-medium flex items-center justify-center gap-2"
             >
               <XCircle className="h-4 w-4 text-red-500" />
-              <span className="text-xs">({tickets.filter(t => t.status === 'cancelled').length})</span>
+              <span className="text-xs xl:hidden">({tickets.filter(t => t.status === 'cancelled').length})</span>
+              <span className="hidden xl:inline text-sm">Cancelled ({tickets.filter(t => t.status === 'cancelled').length})</span>
             </Button>
           </div>
 
