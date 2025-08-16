@@ -36,7 +36,6 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     emp: ticket.emp                        // Reporter (read-only)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [loadingFields, setLoadingFields] = useState<{[key: string]: boolean}>({});
   const [equipmentList, setEquipmentList] = useState<string[]>([]);
   const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
@@ -44,15 +43,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
 
   const { onOrderUpdated, offOrderUpdated } = useWebSocket();
 
-  // Animation effect for editing
-  useEffect(() => {
-    if (isEditing) {
-      const timer = setTimeout(() => {
-        setIsEditing(false);
-      }, 300); // Animation duration
-      return () => clearTimeout(timer);
-    }
-  }, [isEditing]);
+
 
   // Realtime update effect
   useEffect(() => {
@@ -261,11 +252,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
           value={formData.rootcause}
           onChange={(e) => {
             setFormData(prev => ({ ...prev, rootcause: e.target.value }));
-            setIsEditing(true);
           }}
           rows={3}
           className={`transition-all duration-200 ${
-            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
             loadingFields.rootcause ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
           }`}
           disabled={loadingFields.rootcause}
@@ -288,11 +277,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
           value={formData.action}
           onChange={(e) => {
             setFormData(prev => ({ ...prev, action: e.target.value }));
-            setIsEditing(true);
           }}
           rows={3}
           className={`transition-all duration-200 ${
-            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
             loadingFields.action ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
           }`}
           disabled={loadingFields.action}
@@ -365,11 +352,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
           value={formData.notes}
           onChange={(e) => {
             setFormData(prev => ({ ...prev, notes: e.target.value }));
-            setIsEditing(true);
           }}
           rows={3}
           className={`transition-all duration-200 ${
-            isEditing ? 'ring-2 ring-blue-600 bg-blue-50' : 
             loadingFields.notes ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
           }`}
           disabled={loadingFields.notes}
