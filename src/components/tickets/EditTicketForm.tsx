@@ -26,7 +26,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     rootcause: ticket.rootcause || '',  // Problem Description -> Root Cause
     status: ticket.status,
     priority: ticket.priority || 'medium',
-    deviceType: ticket.device_type || ticket.deviceType || '',  // Use device_type from database
+    deviceType: ticket.device_type || ticket.deviceType || 'Computer',  // Use device_type from database
     emp_repair: user?.username?.toUpperCase() || ticket.emprepair || '',   // Use admin username in uppercase
     items: ticket.items || '',             // New field
     action: ticket.action || '',           // New field
@@ -180,7 +180,16 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
             onValueChange={(value) => setFormData(prev => ({ ...prev, deviceType: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select device type" />
+              <SelectValue placeholder="Select device type">
+                {formData.deviceType && (
+                  <div className="flex items-center gap-2">
+                    {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4" />}
+                    {formData.deviceType === 'Laptop' && <Laptop className="h-4 w-4" />}
+                    {formData.deviceType === 'Other' && <Smartphone className="h-4 w-4" />}
+                    {formData.deviceType}
+                  </div>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Computer" className="flex items-center gap-2">
