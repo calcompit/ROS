@@ -436,7 +436,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     <div className="p-4 md:p-6">
       
       {activeTab === 'overview' && (
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
@@ -735,7 +735,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
       {/* Tickets Tab */}
       {activeTab === 'tickets' && (
-        <div className="space-y-4">
+        <div className="space-y-จ">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">My Repair Orders</h2>
@@ -890,7 +890,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
       {/* New Ticket Tab */}
       {activeTab === 'new-ticket' && (
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div>
             <h2 className="text-2xl font-bold text-foreground">Create New Repair Order</h2>
             <p className="text-muted-foreground">Submit a new repair request for your equipment</p>
@@ -902,4 +902,4 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   );
 };
 
-export default Dashboard;
+export default Dashboard0
