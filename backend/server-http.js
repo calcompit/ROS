@@ -185,7 +185,26 @@ const startServer = async () => {
     // Create Socket.IO server on HTTP server
     const io = new Server(httpServer, {
       cors: {
-        origin: true,
+        origin: [
+          // Development
+          'http://localhost:3000',
+          'http://localhost:5173',
+          'http://localhost:8081',
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:5173',
+          'http://127.0.0.1:8081',
+          
+          // Local network (10.x.x.x)
+          /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
+          
+          // Netlify domains
+          'https://calcompit-ros.netlify.app',
+          /^https:\/\/.*\.netlify\.app$/,
+          
+          // Tailscale domains
+          'https://wk-svr01.tail878f89.ts.net',
+          /^https:\/\/.*\.tail878f89\.ts\.net$/,
+        ],
         methods: ["GET", "POST", "OPTIONS"],
         credentials: true,
         allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
@@ -201,6 +220,8 @@ const startServer = async () => {
     // Socket.IO event handlers
     io.on('connection', (socket) => {
       console.log(`🔌 Client connected: ${socket.id}`);
+      console.log(`🔌 Client origin: ${socket.handshake.headers.origin}`);
+      console.log(`🔌 Client user agent: ${socket.handshake.headers['user-agent']}`);
       
       // Join room for real-time updates
       socket.on('join-room', (room) => {
