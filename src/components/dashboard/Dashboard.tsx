@@ -436,7 +436,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     <div className="p-4 md:p-6">
       
       {activeTab === 'overview' && (
-        <div className="space-y-2">
+        <div className="space-y-2 md:-mt-5">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
