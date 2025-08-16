@@ -207,11 +207,12 @@ router.post('/', async (req, res) => {
     if (result.success) {
       // Get the created order
       const getOrderQuery = `
-        SELECT * FROM TBL_IT_PCMAINTENANCE 
-        WHERE order_no = (SELECT SCOPE_IDENTITY())
+        SELECT TOP 1 * FROM TBL_IT_PCMAINTENANCE 
+        WHERE subject = ? AND name = ? AND dept = ? AND emp = ?
+        ORDER BY insert_date DESC
       `;
       
-      const orderResult = await executeQuery(getOrderQuery);
+      const orderResult = await executeQuery(getOrderQuery, [subject, name, dept, emp]);
       
       if (orderResult.success && orderResult.data.length > 0) {
         const newOrder = orderResult.data[0];
