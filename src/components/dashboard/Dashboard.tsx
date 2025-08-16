@@ -333,8 +333,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const handleNewTicket = (newTicket: TicketType) => {
     setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
-    setActiveTab('tickets');
-    window.location.hash = 'tickets';
+    setActiveTab('overview');
+    window.location.hash = 'overview';
     
     // Refresh dashboard stats when new ticket is created
     fetchDashboardStats();
