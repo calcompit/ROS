@@ -164,8 +164,23 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   // Load dashboard stats on component mount and when date/period filters change
   useEffect(() => {
+    console.log('🔄 Fetching dashboard stats due to filter change:', { dateFilter, periodFilter });
     fetchDashboardStats();
   }, [dateFilter, periodFilter]);
+
+  // Debug dashboard stats changes
+  useEffect(() => {
+    console.log('📊 Dashboard stats updated:', {
+      total: dashboardStats?.total,
+      pending: dashboardStats?.pending,
+      inProgress: dashboardStats?.inProgress,
+      completed: dashboardStats?.completed,
+      cancelled: dashboardStats?.cancelled,
+      byDepartment: dashboardStats?.byDepartment?.length,
+      byDeviceType: dashboardStats?.byDeviceType?.length,
+      monthlyTrends: dashboardStats?.monthlyTrends?.length
+    });
+  }, [dashboardStats]);
 
   // WebSocket event handlers - use useCallback to prevent infinite re-renders
   const handleOrderCreated = useCallback((data: any) => {
