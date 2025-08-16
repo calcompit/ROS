@@ -256,20 +256,26 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   const handleOrderDeleted = useCallback((data: any) => {
     console.log('🔄 Real-time: Order deleted:', data);
+    console.log('🔄 Order number to delete:', data.orderNo);
     const orderNo = data.orderNo;
     
     if (orderNo) {
+      console.log('🔄 Removing ticket from state...');
       // Remove ticket with fade-out animation
       setTickets(prev => {
         const newTickets = prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
+        console.log('🔄 Tickets after removal:', newTickets.length);
         return newTickets;
       });
       
       // Refresh dashboard stats to update charts
       setTimeout(() => {
         console.log('🔄 Refreshing dashboard stats after order deletion...');
+        console.log('🔄 Calling fetchDashboardStats...');
         fetchDashboardStats();
       }, 100);
+    } else {
+      console.log('❌ No order number found in delete event');
     }
   }, [fetchDashboardStats]);
 
