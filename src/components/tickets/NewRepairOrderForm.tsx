@@ -197,7 +197,7 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                 required
               >
                 <SelectTrigger className="bg-muted/30 focus:bg-background transition-colors">
-                  <SelectValue placeholder="Select device type">
+                    <SelectValue placeholder="Select device type">
                     {formData.deviceType && (
                       <div className="flex items-center gap-2">
                         {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4" />}
@@ -209,16 +209,16 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Computer" className="flex items-center gap-2">
-                    <Monitor className="h-4 w-4" />
+                  <SelectItem value="Computer" className="flex items-center gap-2 py-2">
+                    <Monitor className="h-4 w-4 text-blue-600" />
                     Computer
                   </SelectItem>
-                  <SelectItem value="Laptop" className="flex items-center gap-2">
-                    <Laptop className="h-4 w-4" />
+                  <SelectItem value="Laptop" className="flex items-center gap-2 py-2">
+                    <Laptop className="h-4 w-4 text-green-600" />
                     Laptop
                   </SelectItem>
-                  <SelectItem value="Other" className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
+                  <SelectItem value="Other" className="flex items-center gap-2 py-2">
+                    <Smartphone className="h-4 w-4 text-purple-600" />
                     Other
                   </SelectItem>
                 </SelectContent>
