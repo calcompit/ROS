@@ -124,14 +124,14 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
       case 'computer':
       case 'pc':
       case 'desktop':
-        return <Monitor className="h-4 w-4" />;
+        return <Monitor className="h-4 w-4 text-blue-600" />;
       case 'laptop':
       case 'notebook':
-        return <Laptop className="h-4 w-4" />;
+        return <Laptop className="h-4 w-4 text-green-600" />;
       case 'other':
-        return <Smartphone className="h-4 w-4" />;
+        return <Smartphone className="h-4 w-4 text-purple-600" />;
       default:
-        return <Smartphone className="h-4 w-4" />;
+        return <Smartphone className="h-4 w-4 text-purple-600" />;
     }
   };
 

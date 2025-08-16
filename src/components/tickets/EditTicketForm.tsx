@@ -187,29 +187,35 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
             onValueChange={(value) => setFormData(prev => ({ ...prev, deviceType: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select device type">
-                {formData.deviceType && (
-                  <div className="flex items-center gap-2">
-                    {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4" />}
-                    {formData.deviceType === 'Laptop' && <Laptop className="h-4 w-4" />}
-                    {formData.deviceType === 'Other' && <Smartphone className="h-4 w-4" />}
-                    {formData.deviceType}
-                  </div>
-                )}
-              </SelectValue>
+                                  <SelectValue placeholder="Select device type">
+                      {formData.deviceType && (
+                        <div className="flex items-center gap-2">
+                          {formData.deviceType === 'Computer' && <Monitor className="h-4 w-4 text-blue-600" />}
+                          {formData.deviceType === 'Laptop' && <Laptop className="h-4 w-4 text-green-600" />}
+                          {formData.deviceType === 'Other' && <Smartphone className="h-4 w-4 text-purple-600" />}
+                          {formData.deviceType}
+                        </div>
+                      )}
+                    </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Computer" className="flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                Computer
+              <SelectItem value="Computer">
+                <div className="flex items-center gap-3 w-full">
+                  <Monitor className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <span>Computer</span>
+                </div>
               </SelectItem>
-              <SelectItem value="Laptop" className="flex items-center gap-2">
-                <Laptop className="h-4 w-4" />
-                Laptop
+              <SelectItem value="Laptop">
+                <div className="flex items-center gap-3 w-full">
+                  <Laptop className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <span>Laptop</span>
+                </div>
               </SelectItem>
-              <SelectItem value="Other" className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4" />
-                Other
+              <SelectItem value="Other">
+                <div className="flex items-center gap-3 w-full">
+                  <Smartphone className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                  <span>Other</span>
+                </div>
               </SelectItem>
             </SelectContent>
           </Select>
