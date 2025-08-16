@@ -174,7 +174,13 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="edit-deviceType">Device Type</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="edit-deviceType">Device Type</Label>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-0">
+              <Loader2 className="h-3 w-3" />
+              Updating...
+            </div>
+          </div>
           <Select 
             value={formData.deviceType} 
             onValueChange={(value) => setFormData(prev => ({ ...prev, deviceType: value }))}
