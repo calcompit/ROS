@@ -1,7 +1,7 @@
 // Environment configuration
 export const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net/api',
-  wsUrl: import.meta.env.VITE_WS_URL || 'https://wk-svr01.tail878f89.ts.net',
+  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  wsUrl: import.meta.env.VITE_WS_URL || 'http://localhost:3001',
   appEnv: import.meta.env.VITE_APP_ENV || 'development',
 };
 
