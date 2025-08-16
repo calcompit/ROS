@@ -112,13 +112,28 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('order-created', (data) => {
-      console.log('📡 Order created:', data);
+      console.log('📡 Order created event received:', data);
+      console.log('📡 Data structure:', {
+        data: data.data,
+        orderNo: data.orderNo,
+        fullData: data
+      });
+      console.log('📡 Registered handlers count:', orderCreatedHandlersRef.current.length);
+      
       toast({
         title: "🆕 New Repair Order",
         description: `Order ${data.data?.order_no || data.orderNo} has been created`,
       });
+      
       // Call all registered handlers
-      orderCreatedHandlersRef.current.forEach(handler => handler(data));
+      orderCreatedHandlersRef.current.forEach((handler, index) => {
+        console.log(`📡 Calling order-created handler ${index + 1}:`, handler);
+        try {
+          handler(data);
+        } catch (error) {
+          console.error(`📡 Error in order-created handler ${index + 1}:`, error);
+        }
+      });
     });
 
     newSocket.on('order-updated', (data) => {

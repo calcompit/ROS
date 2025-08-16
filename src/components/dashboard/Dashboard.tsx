@@ -170,8 +170,17 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   // WebSocket event handlers - use useCallback to prevent infinite re-renders
   const handleOrderCreated = useCallback((data: any) => {
     console.log('🔄 Real-time: Order created:', data);
-    const newTicket = data.data;
-    if (newTicket) {
+    console.log('🔄 Data structure:', {
+      data: data.data,
+      orderNo: data.orderNo,
+      fullData: data
+    });
+    
+    // Try different possible data structures
+    const newTicket = data.data || data.order || data;
+    
+    if (newTicket && newTicket.order_no) {
+      console.log('🔄 Adding new ticket:', newTicket);
       // Add new ticket with fade-in animation
       setTickets(prev => [newTicket, ...prev]);
       // Update stats
@@ -186,6 +195,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           cancelled: prev.cancelled + (newTicket.status === 'cancelled' ? 1 : 0)
         };
       });
+    } else {
+      console.error('🔄 Invalid ticket data received:', newTicket);
     }
   }, []);
 
