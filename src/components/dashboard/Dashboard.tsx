@@ -433,35 +433,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   });
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      {/* Navigation Tabs - Hidden on Mobile */}
-      <div className="hidden sm:flex flex-row gap-2">
-        <Button
-          variant={activeTab === 'overview' ? 'default' : 'outline'}
-          onClick={() => handleTabChange('overview')}
-          className="flex-none"
-        >
-          Overview
-        </Button>
-        <Button
-          variant={activeTab === 'tickets' ? 'default' : 'outline'}
-          onClick={() => handleTabChange('tickets')}
-          className="flex-none"
-        >
-          My Tickets ({tickets.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length})
-        </Button>
-        <Button
-          variant={activeTab === 'new-ticket' ? 'default' : 'outline'}
-          onClick={() => handleTabChange('new-ticket')}
-          className="flex-none"
-        >
-          New Order
-        </Button>
-      </div>
-
-      {/* Overview Tab */}
+    <div className="p-4 md:p-6">
+      
       {activeTab === 'overview' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold text-foreground">Welcome back!</h2>
@@ -760,7 +735,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
       {/* Tickets Tab */}
       {activeTab === 'tickets' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">My Repair Orders</h2>
@@ -915,7 +890,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
       {/* New Ticket Tab */}
       {activeTab === 'new-ticket' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold text-foreground">Create New Repair Order</h2>
             <p className="text-muted-foreground">Submit a new repair request for your equipment</p>
