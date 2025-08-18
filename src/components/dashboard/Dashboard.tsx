@@ -196,8 +196,18 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
     
     if (newTicket && newTicket.order_no) {
       console.log('🔄 Adding new ticket:', newTicket);
-      // Add new ticket with fade-in animation
-      setTickets(prev => [newTicket, ...prev]);
+      
+      // Check if ticket already exists to prevent duplicates
+      setTickets(prev => {
+        const exists = prev.some(ticket => ticket.order_no === newTicket.order_no);
+        if (exists) {
+          console.log('🔄 Ticket already exists, skipping duplicate:', newTicket.order_no);
+          return prev;
+        }
+        console.log('🔄 Adding new ticket to state:', newTicket.order_no);
+        return [newTicket, ...prev];
+      });
+      
       // Update stats
       setDashboardStats(prev => {
         if (!prev) return prev;
@@ -231,6 +241,13 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       setTickets(prev => {
         console.log('🔄 Previous tickets count:', prev.length);
         console.log('🔄 Previous tickets:', prev.map(t => ({ order_no: t.order_no, status: t.status })));
+        
+        // Check if ticket exists before updating
+        const ticketExists = prev.some(ticket => ticket.order_no.toString() === orderNo.toString());
+        if (!ticketExists) {
+          console.log('🔄 Ticket not found in state, adding new ticket:', orderNo);
+          return [updatedTicket, ...prev];
+        }
         
         const newTickets = prev.map(ticket => 
           ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
