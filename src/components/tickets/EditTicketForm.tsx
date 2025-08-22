@@ -390,14 +390,14 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
             value={formData.priority} 
             onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value as Ticket['priority'] }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-muted/30 focus:bg-background transition-colors">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
+              <SelectItem value="low" className="text-green-600">🟢 Low - Non-urgent</SelectItem>
+              <SelectItem value="medium" className="text-blue-600">🔵 Medium - Normal</SelectItem>
+              <SelectItem value="high" className="text-orange-600">🟠 High - Important</SelectItem>
+              <SelectItem value="urgent" className="text-red-600">🔴 Urgent - Critical</SelectItem>
             </SelectContent>
           </Select>
         </div>
