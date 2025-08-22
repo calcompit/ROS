@@ -241,10 +241,12 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
         });
       });
       
-      // Update stats
+      // Update stats and chart data
       setDashboardStats(prev => {
         if (!prev) return prev;
-        return {
+        
+        // Update status counts
+        const newStats = {
           ...prev,
           total: prev.total + 1,
           pending: prev.pending + (newTicket.status === 'pending' ? 1 : 0),
@@ -252,6 +254,61 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           completed: prev.completed + (newTicket.status === 'completed' ? 1 : 0),
           cancelled: prev.cancelled + (newTicket.status === 'cancelled' ? 1 : 0)
         };
+        
+        // Update department data
+        if (newTicket.dept) {
+          const existingDept = prev.byDepartment?.find(d => d.dept === newTicket.dept);
+          if (existingDept) {
+            newStats.byDepartment = prev.byDepartment?.map(d => 
+              d.dept === newTicket.dept 
+                ? { ...d, count: d.count + 1 }
+                : d
+            );
+          } else {
+            newStats.byDepartment = [
+              ...(prev.byDepartment || []),
+              { dept: newTicket.dept, count: 1 }
+            ];
+          }
+        }
+        
+        // Update device type data
+        if (newTicket.device_type) {
+          const existingDevice = prev.byDeviceType?.find(d => d.device_type === newTicket.device_type);
+          if (existingDevice) {
+            newStats.byDeviceType = prev.byDeviceType?.map(d => 
+              d.device_type === newTicket.device_type 
+                ? { ...d, count: d.count + 1 }
+                : d
+            );
+          } else {
+            newStats.byDeviceType = [
+              ...(prev.byDeviceType || []),
+              { device_type: newTicket.device_type, count: 1 }
+            ];
+          }
+        }
+        
+        // Update monthly trends (add to current month)
+        const currentDate = new Date();
+        const currentMonth = currentDate.toISOString().slice(0, 7); // YYYY-MM format
+        
+        const existingMonth = prev.monthlyTrends?.find(t => t.month === currentMonth);
+        if (existingMonth) {
+          newStats.monthlyTrends = prev.monthlyTrends?.map(t => 
+            t.month === currentMonth 
+              ? { ...t, count: t.count + 1 }
+              : t
+          );
+        } else {
+          newStats.monthlyTrends = [
+            ...(prev.monthlyTrends || []),
+            { month: currentMonth, count: 1 }
+          ];
+        }
+        
+        console.log('🔄 Updated dashboard stats:', newStats);
+        return newStats;
       });
     } else {
       console.error('🔄 Invalid ticket data received:', newTicket);
@@ -289,7 +346,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
         console.log('🔄 New tickets count:', newTickets.length);
         console.log('🔄 New tickets:', newTickets.map(t => ({ order_no: t.order_no, status: t.status })));
         
-        // Update stats immediately with new tickets
+        // Update stats and chart data immediately with new tickets
         setDashboardStats(prevStats => {
           if (!prevStats) return prevStats;
           
@@ -300,12 +357,31 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           
           console.log('🔄 Status counts:', { pending: pendingCount, inProgress: inProgressCount, completed: completedCount, cancelled: cancelledCount });
           
+          // Update department data
+          const deptCounts: { [key: string]: number } = {};
+          newTickets.forEach(ticket => {
+            if (ticket.dept) {
+              deptCounts[ticket.dept] = (deptCounts[ticket.dept] || 0) + 1;
+            }
+          });
+          
+          // Update device type data
+          const deviceCounts: { [key: string]: number } = {};
+          newTickets.forEach(ticket => {
+            if (ticket.device_type) {
+              deviceCounts[ticket.device_type] = (deviceCounts[ticket.device_type] || 0) + 1;
+            }
+          });
+          
           const newStats = {
             ...prevStats,
+            total: newTickets.length,
             pending: pendingCount,
             inProgress: inProgressCount,
             completed: completedCount,
-            cancelled: cancelledCount
+            cancelled: cancelledCount,
+            byDepartment: Object.entries(deptCounts).map(([dept, count]) => ({ dept, count })),
+            byDeviceType: Object.entries(deviceCounts).map(([device_type, count]) => ({ device_type, count }))
           };
           
           console.log('🔄 Updated dashboard stats:', newStats);
