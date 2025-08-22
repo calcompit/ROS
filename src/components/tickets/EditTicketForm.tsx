@@ -31,7 +31,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     items: ticket.items || '',             // New field
     action: ticket.action || '',           // New field
     notes: ticket.notes || '',             // Notes field
-    name: ticket.name,                     // PC/Device name (read-only)
+    name: ticket.name,                     // PC/Device name (editable for pending/in-progress)
     dept: ticket.dept,                     // Department (read-only)
     emp: ticket.emp                        // Reporter (read-only)
   });
@@ -100,7 +100,19 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
     setIsSubmitting(true);
 
     try {
-      const response = await repairOrdersApi.update(ticket.order_no, {
+      // Validation: Check if name is provided when status is not completed
+      if (formData.status !== 'completed' && !formData.name.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Device/PC name is required when status is not completed.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare update data
+      const updateData: any = {
         subject: formData.subject,
         rootcause: formData.rootcause,
         status: formData.status,
@@ -109,7 +121,14 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         items: formData.items,
         action: formData.action,
         notes: formData.notes
-      });
+      };
+
+      // Only include name field if status is not completed
+      if (formData.status !== 'completed') {
+        updateData.name = formData.name;
+      }
+
+      const response = await repairOrdersApi.update(ticket.order_no, updateData);
 
       if (response.success) {
         await onSave(response.data);
@@ -134,7 +153,16 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
 
   return (
     <form id="edit-ticket-form" onSubmit={handleSubmit} className="space-y-4">
-      {/* Read-only Basic Information */}
+      {/* Status-based editing info */}
+      {formData.status === 'completed' && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-yellow-800">
+            <span>🔒</span>
+            <span>Some fields are locked because this order is completed. Device/PC name cannot be edited.</span>
+          </div>
+        </div>
+      )}
+      {/* Basic Information */}
       <div className="grid gap-4 md:grid-cols-3 p-3 bg-muted/50 rounded-lg">
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Order No.</Label>
@@ -142,7 +170,19 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         </div>
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Device/PC Name</Label>
-          <p className="text-sm">{ticket.name}</p>
+          {formData.status === 'completed' ? (
+            <div>
+              <p className="text-sm">{ticket.name}</p>
+              <p className="text-xs text-muted-foreground mt-1">🔒 Cannot edit when completed</p>
+            </div>
+          ) : (
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter device/PC name"
+              className="text-sm h-8"
+            />
+          )}
         </div>
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Department</Label>
