@@ -191,8 +191,8 @@ router.post('/', async (req, res) => {
     
     const sqlQuery = `
       INSERT INTO TBL_IT_PCMAINTENANCE 
-      (subject, name, dept, emp, device_type, items, notes, status, insert_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', DATEADD(HOUR, 7, GETUTCDATE()))
+      (subject, name, dept, emp, device_type, items, notes, status, insert_date, last_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()))
     `;
     
     const result = await executeNonQuery(sqlQuery, [

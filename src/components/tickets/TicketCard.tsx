@@ -444,7 +444,12 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">{getDisplayName('last_date')}</label>
-                <p className="text-foreground mt-1">{formatDate(ticket.last_date)}</p>
+                <p className="text-foreground mt-1">
+                  {ticket.last_date && ticket.last_date !== '' 
+                    ? formatDate(ticket.last_date) 
+                    : formatDate(ticket.insert_date) + ' (initial)'
+                  }
+                </p>
               </div>
             </div>
 
