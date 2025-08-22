@@ -1,73 +1,55 @@
-# Welcome to your Lovable project
+# Computer Change Tracker
 
-## Project info
+ระบบติดตามการเปลี่ยนแปลงคอมพิวเตอร์แบบ Real-time
 
-**URL**: https://lovable.dev/projects/28d47c9d-1b1a-430e-91e4-c7cd8b50eba0
+## 🚀 Quick Start
 
-## How can I edit this code?
+### Development
 
-There are several ways of editing your application.
+```bash
+# Install dependencies
+npm install
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/28d47c9d-1b1a-430e-91e4-c7cd8b50eba0) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+สร้างไฟล์ `.env` ในโฟลเดอร์หลัก:
 
-**Use GitHub Codespaces**
+```bash
+VITE_API_URL=https://wk-svr01.neofelis-mooneye.ts.net/api
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🛠️ Technologies
 
-## What technologies are used for this project?
+- **Frontend:** React + TypeScript + Vite
+- **UI:** shadcn/ui + Tailwind CSS
+- **Deployment:** Netlify
 
-This project is built with:
+## 📁 Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+├── components/     # UI Components
+├── pages/         # Page Components
+├── lib/           # Utilities & API
+└── hooks/         # Custom Hooks
+```
 
-## How can I deploy this project?
+## 🌐 Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/28d47c9d-1b1a-430e-91e4-c7cd8b50eba0) and click on Share -> Publish.
+เว็บไซต์: [https://calcompit-ros.netlify.app](https://calcompit-ros.netlify.app)
 
-## Can I connect a custom domain to my Lovable project?
+## 📝 API Configuration
 
-Yes, you can!
+API URL: `https://wk-svr01.neofelis-mooneye.ts.net/api`
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+สำหรับ Netlify ให้ตั้งค่า Environment Variables:
+- `VITE_API_URL`: `https://wk-svr01.neofelis-mooneye.ts.net/api`
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

@@ -57,14 +57,8 @@ export const apiClient = {
 
 // API Endpoints
 export const apiEndpoints = {
-  // Computer Change Tracker endpoints
   machines: '/machines',
   machineChangeLogs: (machineId: string) => `/machines/${machineId}/changes`,
   changeLogs: '/changes',
   reports: '/reports',
-  
-  // FixIt Bright Dashboard endpoints
-  repairOrders: '/repair-orders',
-  repairOrderStats: '/repair-orders/stats/dashboard',
-  repairOrderById: (id: string) => `/repair-orders/${id}`,
 } as const;
