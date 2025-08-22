@@ -44,7 +44,7 @@ export function DatabaseConnectionDialog({
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://wk-svr01.tail878f89.ts.net/api/database/status');
+      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/status');
       const data = await response.json();
       
       if (data.success) {
@@ -65,7 +65,7 @@ export function DatabaseConnectionDialog({
       setTesting(true);
       setMessage('');
       
-      const response = await fetch('https://wk-svr01.tail878f89.ts.net/api/database/test-connection', {
+      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/test-connection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ export function DatabaseConnectionDialog({
       setReconnecting(true);
       setMessage('');
       
-      const response = await fetch('https://wk-svr01.tail878f89.ts.net/api/database/reconnect', {
+      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/reconnect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

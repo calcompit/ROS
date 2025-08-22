@@ -9,8 +9,8 @@ export const config = {
   windowsWsUrl: import.meta.env.VITE_WINDOWS_WS_URL || 'http://10.53.64.205:3001',
   
   // Production URLs
-  productionApiUrl: import.meta.env.VITE_PRODUCTION_API_URL || 'https://wk-svr01.tail878f89.ts.net/api',
-  productionWsUrl: import.meta.env.VITE_PRODUCTION_WS_URL || 'https://wk-svr01.tail878f89.ts.net',
+  productionApiUrl: import.meta.env.VITE_PRODUCTION_API_URL || 'https://wk-svr01.neofelis-mooneye.ts.net/api',
+  productionWsUrl: import.meta.env.VITE_PRODUCTION_WS_URL || 'https://wk-svr01.neofelis-mooneye.ts.net',
   
   appEnv: import.meta.env.VITE_APP_ENV || 'development',
 };
@@ -28,8 +28,8 @@ export const environments = {
     name: 'Windows Backend'
   },
   production: {
-    apiUrl: 'https://wk-svr01.tail878f89.ts.net/api',
-    wsUrl: 'https://wk-svr01.tail878f89.ts.net',
+    apiUrl: 'https://wk-svr01.neofelis-mooneye.ts.net/api',
+    wsUrl: 'https://wk-svr01.neofelis-mooneye.ts.net',
     name: 'Production'
   }
 };
