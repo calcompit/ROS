@@ -192,7 +192,7 @@ router.post('/', async (req, res) => {
     const sqlQuery = `
       INSERT INTO TBL_IT_PCMAINTENANCE 
       (subject, name, dept, emp, device_type, items, notes, status, insert_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', GETDATE())
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', DATEADD(HOUR, 7, GETUTCDATE()))
     `;
     
     const result = await executeNonQuery(sqlQuery, [
@@ -281,7 +281,7 @@ router.put('/:id', async (req, res) => {
     }
     
     // Add last_date update
-          updateFields.push('last_date = GETDATE()');
+          updateFields.push('last_date = DATEADD(HOUR, 7, GETUTCDATE())');
     
     const sqlQuery = `
       UPDATE TBL_IT_PCMAINTENANCE 
@@ -504,7 +504,7 @@ router.get('/stats/dashboard', async (req, res) => {
             FORMAT(insert_date, 'MMMM yyyy') as month,
             COUNT(*) as count
           FROM TBL_IT_PCMAINTENANCE 
-          WHERE insert_date >= DATEADD(month, -12, GETDATE())
+          WHERE insert_date >= DATEADD(month, -12, DATEADD(HOUR, 7, GETUTCDATE()))
           GROUP BY FORMAT(insert_date, 'MMMM yyyy')
           ORDER BY MIN(insert_date) DESC
         `;

@@ -20,7 +20,7 @@ const config = {
     connectTimeout: 60000,
     cancelTimeout: 5000,
     packetSize: 4096,
-    useUTC: true,
+    useUTC: false,
     abortTransactionOnError: true,
     isolationLevel: 2
   },

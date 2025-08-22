@@ -35,14 +35,14 @@ const createTables = async () => {
         name NVARCHAR(100) NOT NULL, -- PC/Device name
         dept NVARCHAR(100) NOT NULL, -- Department
         emp NVARCHAR(100) NOT NULL, -- Employee who reported
-        insert_date DATETIME2 NOT NULL DEFAULT GETDATE(),
+        insert_date DATETIME2 NOT NULL DEFAULT DATEADD(HOUR, 7, GETUTCDATE()),
         items NTEXT, -- Equipment/items details
         rootcause NTEXT, -- Root cause analysis
         emprepair NVARCHAR(100), -- Technician assigned (renamed from emp_repair)
-        last_date DATETIME2 NOT NULL DEFAULT GETDATE(),
+        last_date DATETIME2 NOT NULL DEFAULT DATEADD(HOUR, 7, GETUTCDATE()),
         status NVARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, in-progress, completed, cancelled
-        created_at DATETIME2 DEFAULT GETDATE(),
-        updated_at DATETIME2 DEFAULT GETDATE()
+        created_at DATETIME2 DEFAULT DATEADD(HOUR, 7, GETUTCDATE()),
+        updated_at DATETIME2 DEFAULT DATEADD(HOUR, 7, GETUTCDATE())
       );
       
       -- Create indexes

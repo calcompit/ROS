@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import EditTicketForm from './EditTicketForm';
+import { formatThailandDate, formatThailandDateTime } from '@/lib/utils';
 
 export interface Ticket {
   // Database fields (internal)
@@ -136,7 +137,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    return formatThailandDateTime(dateString);
   };
 
   const handleTicketSave = async (updatedTicket: Ticket) => {
@@ -226,7 +227,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>{new Date(ticket.insert_date).toLocaleDateString()}</span>
+                <span>{formatThailandDate(ticket.insert_date)}</span>
               </div>
               {(ticket.device_type || ticket.deviceType) && (
                 <div className="flex items-center gap-1">

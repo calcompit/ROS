@@ -118,19 +118,29 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  // Get current time in Thailand timezone
+  const now = new Date();
+  const thailandTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // UTC+7
+  
   res.json({ 
     status: 'OK', 
     message: 'Repair Order API is running (HTTP)',
-    timestamp: new Date().toISOString()
+    timestamp: thailandTime.toISOString(),
+    timezone: 'Asia/Bangkok'
   });
 });
 
 // WebSocket health check endpoint
 app.get('/socket.io/', (req, res) => {
+  // Get current time in Thailand timezone
+  const now = new Date();
+  const thailandTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // UTC+7
+  
   res.json({ 
     status: 'OK', 
     message: 'Socket.IO server is running (HTTP)',
-    timestamp: new Date().toISOString()
+    timestamp: thailandTime.toISOString(),
+    timezone: 'Asia/Bangkok'
   });
 });
 
