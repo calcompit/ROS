@@ -12,7 +12,8 @@ export const THAILAND_OFFSET = 7 * 60 * 60 * 1000; // UTC+7 in milliseconds
 /**
  * Convert date to Thailand timezone
  */
-export function toThailandTime(date: Date | string): Date {
+export function toThailandTime(date: Date | string | null | undefined): Date {
+  if (!date) return new Date();
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return new Date(dateObj.getTime() + THAILAND_OFFSET);
 }
@@ -20,8 +21,13 @@ export function toThailandTime(date: Date | string): Date {
 /**
  * Format date in Thailand locale
  */
-export function formatThailandDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
+export function formatThailandDate(date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!date) return 'N/A';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return 'Invalid Date';
+  
   return dateObj.toLocaleDateString('th-TH', {
     timeZone: THAILAND_TIMEZONE,
     year: 'numeric',
@@ -34,8 +40,13 @@ export function formatThailandDate(date: Date | string, options?: Intl.DateTimeF
 /**
  * Format date and time in Thailand locale
  */
-export function formatThailandDateTime(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
+export function formatThailandDateTime(date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!date) return 'N/A';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return 'Invalid Date';
+  
   return dateObj.toLocaleString('th-TH', {
     timeZone: THAILAND_TIMEZONE,
     year: 'numeric',
@@ -58,9 +69,15 @@ export function getThailandNow(): Date {
 /**
  * Format relative time (e.g., "2 hours ago") in Thailand timezone
  */
-export function formatThailandRelativeTime(date: Date | string): string {
+export function formatThailandRelativeTime(date: Date | string | null | undefined): string {
+  if (!date) return 'Unknown time';
+  
   const now = getThailandNow();
   const targetDate = toThailandTime(date);
+  
+  // Check if date is valid
+  if (isNaN(targetDate.getTime())) return 'Invalid date';
+  
   const diffInMinutes = Math.floor((now.getTime() - targetDate.getTime()) / (1000 * 60));
 
   if (diffInMinutes < 1) return 'เมื่อสักครู่';
