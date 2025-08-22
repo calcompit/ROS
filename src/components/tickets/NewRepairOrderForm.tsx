@@ -97,6 +97,17 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validation: Check if Reported By is at least 7 characters
+    if (formData.emp.trim().length < 7) {
+      toast({
+        title: "Validation Error",
+        description: "Reported By must be at least 7 characters long.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await repairOrdersApi.create({
         subject: formData.subject,
@@ -282,12 +293,28 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
               <Label htmlFor="emp">Reported By</Label>
               <Input
                 id="emp"
-                placeholder="Employee name"
+                placeholder="Employee name (min. 7 characters)"
                 value={formData.emp}
                 onChange={(e) => setFormData(prev => ({ ...prev, emp: e.target.value }))}
-                className="bg-muted/30 focus:bg-background transition-colors"
+                className={`bg-muted/30 focus:bg-background transition-colors ${
+                  formData.emp.length > 0 && formData.emp.length < 7 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : formData.emp.length >= 7 
+                      ? 'border-green-500 focus:border-green-500' 
+                      : ''
+                }`}
                 required
               />
+              {formData.emp.length > 0 && formData.emp.length < 7 && (
+                <p className="text-xs text-red-500">
+                  ⚠️ Must be at least 7 characters (current: {formData.emp.length})
+                </p>
+              )}
+              {formData.emp.length >= 7 && (
+                <p className="text-xs text-green-500">
+                  ✅ Valid length ({formData.emp.length} characters)
+                </p>
+              )}
             </div>
           </div>
 

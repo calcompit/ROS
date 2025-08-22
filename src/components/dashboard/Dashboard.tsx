@@ -440,7 +440,8 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   const handleNewTicket = (newTicket: TicketType) => {
     // Only add ticket if it has order_no
     if (newTicket && newTicket.order_no) {
-      setTickets(prev => [...prev, newTicket]); // เพิ่มท้ายสุด
+      // Don't add to state here - let WebSocket handle it
+      // This prevents duplicate tickets
       setActiveTab('overview');
       window.location.hash = 'overview';
       

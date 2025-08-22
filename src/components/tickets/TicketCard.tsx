@@ -447,7 +447,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
                 <p className="text-foreground mt-1">
                   {ticket.last_date && ticket.last_date !== '' 
                     ? formatDate(ticket.last_date) 
-                    : formatDate(ticket.insert_date) + ' (initial)'
+                    : formatDate(ticket.insert_date)
                   }
                 </p>
               </div>
