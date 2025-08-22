@@ -22,7 +22,7 @@ export function toThailandTime(date: Date | string | null | undefined): Date {
  * Format date in Thailand locale
  */
 export function formatThailandDate(date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions): string {
-  if (!date) return 'N/A';
+  if (!date || date === '') return 'N/A';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
   // Check if date is valid

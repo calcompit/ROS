@@ -163,30 +163,46 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         </div>
       )}
       {/* Basic Information */}
-      <div className="grid gap-4 md:grid-cols-3 p-3 bg-muted/50 rounded-lg">
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Order No.</Label>
-          <p className="text-sm font-medium">{ticket.order_no}</p>
+      <div className="grid gap-4 md:grid-cols-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            Order No.
+          </Label>
+          <p className="text-lg font-bold text-blue-900 bg-white px-3 py-2 rounded-md border border-blue-200">
+            {ticket.order_no}
+          </p>
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Device/PC Name</Label>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            Device/PC Name
+          </Label>
           {formData.status === 'completed' ? (
-            <div>
-              <p className="text-sm">{ticket.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">🔒 Cannot edit when completed</p>
+            <div className="bg-gray-100 px-3 py-2 rounded-md border border-gray-300">
+              <p className="text-lg font-medium text-gray-700">{ticket.name}</p>
+              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <span>🔒</span>
+                <span>Locked when completed</span>
+              </p>
             </div>
           ) : (
             <Input
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Enter device/PC name"
-              className="text-sm h-8"
+              className="text-lg font-medium h-12 border-2 border-green-300 focus:border-green-500 focus:ring-green-200"
             />
           )}
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Department</Label>
-          <p className="text-sm">{ticket.dept}</p>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+            Department
+          </Label>
+          <p className="text-lg font-bold text-purple-900 bg-white px-3 py-2 rounded-md border border-purple-200">
+            {ticket.dept}
+          </p>
         </div>
       </div>
 

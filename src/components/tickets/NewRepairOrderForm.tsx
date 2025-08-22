@@ -116,14 +116,8 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
       if (response.success) {
         onSubmit?.(response.data);
         
-        // Emit WebSocket event for real-time updates
-        if (socket) {
-          console.log('📡 Emitting order-created event:', response.data);
-          socket.emit('order-created', {
-            data: response.data,
-            orderNo: response.data?.order_no
-          });
-        }
+        // Don't emit WebSocket event here - backend will emit it automatically
+        // This prevents duplicate events
         
         toast({
           title: "Repair order created successfully!",
