@@ -12,7 +12,7 @@
 ./switch-env.sh 10.51.101.49 3001
 
 # สลับไป Production
-./switch-env.sh wk-svr01.tail878f89.ts.net 443
+./switch-env.sh wk-svr01.neofelis-mooneye.ts.net 443
 ```
 
 ### วิธีที่ 2: แก้ไขไฟล์ .env.local เอง
@@ -31,8 +31,8 @@ VITE_APP_ENV=development
 # VITE_APP_ENV=development
 
 # Production
-# VITE_API_URL=https://wk-svr01.tail878f89.ts.net/api
-# VITE_WS_URL=https://wk-svr01.tail878f89.ts.net
+# VITE_API_URL=https://wk-svr01.neofelis-mooneye.ts.net/api
+# VITE_WS_URL=https://wk-svr01.neofelis-mooneye.ts.net
 # VITE_APP_ENV=production
 ```
 

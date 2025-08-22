@@ -16,7 +16,7 @@ else
     echo "   - localhost"
     echo "   - 10.51.101.49"
     echo "   - 10.13.10.41"
-    echo "   - wk-svr01.tail878f89.ts.net"
+    echo "   - wk-svr01.neofelis-mooneye.ts.net"
     echo ""
     read -p "URL: " API_URL
 fi

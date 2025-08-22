@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { config } from '@/config/environment';
 import { repairOrdersApi } from '@/services/api';
 
 interface DatabaseContextType {
@@ -39,7 +40,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
     
     try {
       // Check database status
-      const statusResponse = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/status');
+      const statusResponse = await fetch(`${config.apiUrl}/database/status`);
       const statusData = await statusResponse.json();
       
       if (statusData.success && statusData.data.connected) {

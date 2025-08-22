@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { repairOrdersApi } from '@/services/api';
+import { config } from '@/config/environment';
 
 interface DatabaseConnectionDialogProps {
   open: boolean;
@@ -44,7 +45,7 @@ export function DatabaseConnectionDialog({
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/status');
+      const response = await fetch(`${config.apiUrl}/database/status`);
       const data = await response.json();
       
       if (data.success) {
@@ -65,7 +66,7 @@ export function DatabaseConnectionDialog({
       setTesting(true);
       setMessage('');
       
-      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/test-connection', {
+      const response = await fetch(`${config.apiUrl}/database/test-connection`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ export function DatabaseConnectionDialog({
       setReconnecting(true);
       setMessage('');
       
-      const response = await fetch('https://wk-svr01.neofelis-mooneye.ts.net/api/database/reconnect', {
+      const response = await fetch(`${config.apiUrl}/database/reconnect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
