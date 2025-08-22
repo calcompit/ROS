@@ -204,7 +204,7 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
             <div className="flex flex-col gap-2 items-end">
               {/* Priority Badge - Show first for importance */}
               {ticket.priority && (
-                <Badge className={`${getPriorityColor(ticket.priority)} font-bold text-xs px-2 py-1`}>
+                <Badge className={`${getPriorityColor(ticket.priority)} font-bold text-xs px-2 py-1 pointer-events-none`}>
                   {ticket.priority.toUpperCase()}
                 </Badge>
               )}
