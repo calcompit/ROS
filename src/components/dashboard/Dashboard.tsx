@@ -226,14 +226,14 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           const bCompleted = isCompletedOrCancelled(b.status);
           
           if (aCompleted && !bCompleted) {
-            // Completed/Cancelled tickets go to bottom, newest first
-            return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+            // Completed/Cancelled tickets go to bottom, newest last_update first
+            return new Date(b.last_date || b.insert_date).getTime() - new Date(a.last_date || a.insert_date).getTime();
           } else if (!aCompleted && bCompleted) {
             // Active tickets go to top, oldest first (FIFO)
             return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
           } else if (aCompleted && bCompleted) {
-            // Both completed/cancelled - newest first
-            return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+            // Both completed/cancelled - newest last_update first
+            return new Date(b.last_date || b.insert_date).getTime() - new Date(a.last_date || a.insert_date).getTime();
           } else {
             // Both active - oldest first (FIFO queue)
             return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
@@ -487,14 +487,14 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       const bCompleted = isCompletedOrCancelled(b.status);
       
       if (aCompleted && !bCompleted) {
-        // Completed/Cancelled tickets go to bottom, newest first
-        return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+        // Completed/Cancelled tickets go to bottom, newest last_update first
+        return new Date(b.last_date || b.insert_date).getTime() - new Date(a.last_date || a.insert_date).getTime();
       } else if (!aCompleted && bCompleted) {
         // Active tickets go to top, oldest first (FIFO)
         return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
       } else if (aCompleted && bCompleted) {
-        // Both completed/cancelled - newest first
-        return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+        // Both completed/cancelled - newest last_update first
+        return new Date(b.last_date || b.insert_date).getTime() - new Date(a.last_date || a.insert_date).getTime();
       } else {
         // Both active - oldest first (FIFO queue)
         return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
