@@ -117,11 +117,10 @@ const NewRepairOrderForm = ({ onSubmit }: NewRepairOrderFormProps) => {
         device_type: formData.deviceType,
         items: '',
         notes: formData.notes,
-
+        priority: formData.priority,
         action: '',
         emprepair: '',
         status: 'pending',
-
       });
 
       if (response.success) {

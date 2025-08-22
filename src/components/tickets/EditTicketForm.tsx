@@ -116,6 +116,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = ({ ticket, onSave, onCance
         subject: formData.subject,
         rootcause: formData.rootcause,
         status: formData.status,
+        priority: formData.priority,
         emprepair: formData.emp_repair,
         device_type: formData.deviceType,
         items: formData.items,
