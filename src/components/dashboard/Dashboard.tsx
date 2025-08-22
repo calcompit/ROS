@@ -206,7 +206,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
         }
         console.log('🔄 Adding new ticket to state:', newTicket.order_no);
         
-        // Add new ticket and sort by priority
+        // Add new ticket and sort by priority and status
         const updatedTickets = [newTicket, ...prev];
         const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
         
@@ -218,8 +218,26 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             return aPriority - bPriority; // Lower number = higher priority
           }
           
-          // If same priority, sort by date (newest first)
-          return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+          // Same priority - check status
+          const isCompletedOrCancelled = (status: string) => 
+            status === 'completed' || status === 'cancelled';
+          
+          const aCompleted = isCompletedOrCancelled(a.status);
+          const bCompleted = isCompletedOrCancelled(b.status);
+          
+          if (aCompleted && !bCompleted) {
+            // Completed/Cancelled tickets go to bottom, newest first
+            return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+          } else if (!aCompleted && bCompleted) {
+            // Active tickets go to top, oldest first (FIFO)
+            return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
+          } else if (aCompleted && bCompleted) {
+            // Both completed/cancelled - newest first
+            return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+          } else {
+            // Both active - oldest first (FIFO queue)
+            return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
+          }
         });
       });
       
@@ -451,7 +469,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       return matchesSearch && matchesStatus;
     });
 
-    // Sort by priority first, then by insert_date
+    // Sort by priority first, then by status and date
     return filteredTickets.sort((a, b) => {
       const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
       const aPriority = priorityOrder[a.priority || 'medium'] || 5;
@@ -461,8 +479,26 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
         return aPriority - bPriority; // Lower number = higher priority
       }
       
-      // If same priority, sort by date (newest first)
-      return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+      // Same priority - check status
+      const isCompletedOrCancelled = (status: string) => 
+        status === 'completed' || status === 'cancelled';
+      
+      const aCompleted = isCompletedOrCancelled(a.status);
+      const bCompleted = isCompletedOrCancelled(b.status);
+      
+      if (aCompleted && !bCompleted) {
+        // Completed/Cancelled tickets go to bottom, newest first
+        return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+      } else if (!aCompleted && bCompleted) {
+        // Active tickets go to top, oldest first (FIFO)
+        return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
+      } else if (aCompleted && bCompleted) {
+        // Both completed/cancelled - newest first
+        return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+      } else {
+        // Both active - oldest first (FIFO queue)
+        return new Date(a.insert_date).getTime() - new Date(b.insert_date).getTime();
+      }
     });
   }, [tickets, searchQuery, statusFilter]);
 
