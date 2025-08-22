@@ -1,5 +1,5 @@
 // API Client Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://wk-svr01.neofelis-mooneye.ts.net/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://wk-svr01.tail878f89.ts.net/api';
 
 console.log('API URL:', API_BASE_URL);
 
@@ -57,8 +57,14 @@ export const apiClient = {
 
 // API Endpoints
 export const apiEndpoints = {
+  // Computer Change Tracker endpoints
   machines: '/machines',
   machineChangeLogs: (machineId: string) => `/machines/${machineId}/changes`,
   changeLogs: '/changes',
   reports: '/reports',
+  
+  // FixIt Bright Dashboard endpoints
+  repairOrders: '/repair-orders',
+  repairOrderStats: '/repair-orders/stats/dashboard',
+  repairOrderById: (id: string) => `/repair-orders/${id}`,
 } as const;

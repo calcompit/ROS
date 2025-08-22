@@ -5,7 +5,7 @@
 ### 1. สร้างไฟล์ `.env` ในโฟลเดอร์หลักของโปรเจค
 
 ```bash
-VITE_API_URL=https://wk-svr01.neofelis-mooneye.ts.net/api
+VITE_API_URL=https://wk-svr01.tail878f89.ts.net/api
 ```
 
 ### 2. สำหรับ Netlify Deployment
@@ -14,13 +14,13 @@ VITE_API_URL=https://wk-svr01.neofelis-mooneye.ts.net/api
 
 | Variable Name | Value |
 |---------------|-------|
-| `VITE_API_URL` | `https://wk-svr01.neofelis-mooneye.ts.net/api` |
+| `VITE_API_URL` | `https://wk-svr01.tail878f89.ts.net/api` |
 
 ### 3. การตรวจสอบ
 
 เปิด Developer Tools (F12) และดู Console จะแสดง:
 ```
-API URL: https://wk-svr01.neofelis-mooneye.ts.net/api
+API URL: https://wk-svr01.tail878f89.ts.net/api
 ```
 
 ## หมายเหตุ
