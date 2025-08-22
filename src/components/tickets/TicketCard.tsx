@@ -101,15 +101,15 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
   const getPriorityColor = (priority: Ticket['priority']) => {
     switch (priority) {
       case 'urgent':
-        return 'border-red-500 text-red-600 bg-transparent';
+        return 'bg-red-500 text-white border-red-600 shadow-lg';
       case 'high':
-        return 'border-orange-500 text-orange-600 bg-transparent';
+        return 'bg-orange-500 text-white border-orange-600 shadow-md';
       case 'medium':
-        return 'border-blue-500 text-blue-600 bg-transparent';
+        return 'bg-blue-500 text-white border-blue-600';
       case 'low':
-        return 'border-gray-400 text-gray-600 bg-transparent';
+        return 'bg-gray-400 text-white border-gray-500';
       default:
-        return 'border-gray-400 text-gray-600 bg-transparent';
+        return 'bg-gray-400 text-white border-gray-500';
     }
   };
 
@@ -202,9 +202,14 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
-              {/* Update Indicator */}
-
-
+              {/* Priority Badge - Show first for importance */}
+              {ticket.priority && (
+                <Badge className={`${getPriorityColor(ticket.priority)} font-bold text-xs px-2 py-1`}>
+                  {ticket.priority.toUpperCase()}
+                </Badge>
+              )}
+              
+              {/* Status Badge */}
               <Badge 
                 variant="outline" 
                 className={`${getStatusColor(ticket.status)} transition-all duration-500 hover:scale-105 ${
@@ -213,11 +218,6 @@ const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = fa
               >
                 {formatStatus(ticket.status)}
               </Badge>
-              {ticket.priority && (
-                <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
-                  {ticket.priority.toUpperCase()}
-                </Badge>
-              )}
             </div>
           </div>
         </CardHeader>

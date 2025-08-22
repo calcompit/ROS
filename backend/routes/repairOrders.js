@@ -48,7 +48,8 @@ router.get('/', async (req, res) => {
         action,
         emprepair,
         last_date,
-        notes
+        notes,
+        ISNULL(priority, 'medium') as priority
       FROM TBL_IT_PCMAINTENANCE
       WHERE 1=1
     `;
@@ -96,8 +97,17 @@ router.get('/', async (req, res) => {
       }
     }
     
-    // Add sorting and pagination for SQL Server
-    sqlQuery += ` ORDER BY insert_date DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`;
+    // Add sorting by priority first, then by insert_date
+    sqlQuery += ` ORDER BY 
+      CASE 
+        WHEN ISNULL(priority, 'medium') = 'urgent' THEN 1
+        WHEN ISNULL(priority, 'medium') = 'high' THEN 2
+        WHEN ISNULL(priority, 'medium') = 'medium' THEN 3
+        WHEN ISNULL(priority, 'medium') = 'low' THEN 4
+        ELSE 5
+      END,
+      insert_date DESC 
+      OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`;
     
     params.push(parseInt(offset));
     params.push(parseInt(limit));
@@ -186,13 +196,14 @@ router.post('/', async (req, res) => {
       emp,
       device_type,
       items = '',
-      notes = ''
+      notes = '',
+      priority = 'medium'
     } = req.body;
     
     const sqlQuery = `
       INSERT INTO TBL_IT_PCMAINTENANCE 
-      (subject, name, dept, emp, device_type, items, notes, status, insert_date, last_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()))
+      (subject, name, dept, emp, device_type, items, notes, priority, status, insert_date, last_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()))
     `;
     
     const result = await executeNonQuery(sqlQuery, [
@@ -202,7 +213,8 @@ router.post('/', async (req, res) => {
       emp,
       device_type,
       items,
-      notes
+      notes,
+      priority
     ]);
     
     if (result.success) {

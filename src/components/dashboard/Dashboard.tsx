@@ -205,7 +205,22 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           return prev;
         }
         console.log('🔄 Adding new ticket to state:', newTicket.order_no);
-        return [newTicket, ...prev];
+        
+        // Add new ticket and sort by priority
+        const updatedTickets = [newTicket, ...prev];
+        const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
+        
+        return updatedTickets.sort((a, b) => {
+          const aPriority = priorityOrder[a.priority || 'medium'] || 5;
+          const bPriority = priorityOrder[b.priority || 'medium'] || 5;
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority; // Lower number = higher priority
+          }
+          
+          // If same priority, sort by date (newest first)
+          return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
+        });
       });
       
       // Update stats
@@ -424,7 +439,7 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   // For My Tickets tab, ensure we use the same data source as dashboard stats
   const ticketsForMyTickets = useMemo(() => {
     // Always use tickets array (which should contain all orders)
-    return tickets.filter(ticket => {
+    const filteredTickets = tickets.filter(ticket => {
       if (!ticket.order_no) return false;
       
       const matchesSearch = ticket.order_no.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -434,6 +449,20 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                            ticket.emp.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
       return matchesSearch && matchesStatus;
+    });
+
+    // Sort by priority first, then by insert_date
+    return filteredTickets.sort((a, b) => {
+      const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
+      const aPriority = priorityOrder[a.priority || 'medium'] || 5;
+      const bPriority = priorityOrder[b.priority || 'medium'] || 5;
+      
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority; // Lower number = higher priority
+      }
+      
+      // If same priority, sort by date (newest first)
+      return new Date(b.insert_date).getTime() - new Date(a.insert_date).getTime();
     });
   }, [tickets, searchQuery, statusFilter]);
 

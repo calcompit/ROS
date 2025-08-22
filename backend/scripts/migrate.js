@@ -41,6 +41,8 @@ const createTables = async () => {
         emprepair NVARCHAR(100), -- Technician assigned (renamed from emp_repair)
         last_date DATETIME2 NOT NULL DEFAULT DATEADD(HOUR, 7, GETUTCDATE()),
         status NVARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, in-progress, completed, cancelled
+        priority NVARCHAR(20) DEFAULT 'medium', -- low, medium, high, urgent
+        notes NTEXT, -- Additional notes
         created_at DATETIME2 DEFAULT DATEADD(HOUR, 7, GETUTCDATE()),
         updated_at DATETIME2 DEFAULT DATEADD(HOUR, 7, GETUTCDATE())
       );
@@ -50,6 +52,7 @@ const createTables = async () => {
       CREATE INDEX idx_dept ON dbo.TBL_IT_PCMAINTENANCE (dept);
       CREATE INDEX idx_emprepair ON dbo.TBL_IT_PCMAINTENANCE (emprepair);
       CREATE INDEX idx_insert_date ON dbo.TBL_IT_PCMAINTENANCE (insert_date);
+      CREATE INDEX idx_priority ON dbo.TBL_IT_PCMAINTENANCE (priority);
     `;
 
     // Create users table for authentication
