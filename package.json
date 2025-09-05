@@ -10,7 +10,9 @@
     "build:cloudflare": "npm run build",
     "build:netlify": "vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "security-check": "node scripts/security-check.js",
+    "security-check:fix": "npm run security-check && echo 'Please review and fix any issues found'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

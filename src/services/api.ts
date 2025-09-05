@@ -37,8 +37,12 @@ const apiRequest = async <T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
   const fullUrl = `${API_BASE_URL}${endpoint}`;
-  console.log('🌐 API Request:', fullUrl);
-  console.log('📋 Options:', options);
+  
+  // Only log in development mode or when debug is enabled
+  if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+    console.log('🌐 API Request:', fullUrl);
+    console.log('📋 Options:', options);
+  }
   
   try {
     const response = await fetch(fullUrl, {
@@ -54,20 +58,29 @@ const apiRequest = async <T>(
       ...options,
     });
 
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+    // Only log in development mode or when debug is enabled
+    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+    }
 
     if (!response.ok) {
-      console.error('❌ HTTP Error:', response.status, response.statusText);
+      if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+        console.error('❌ HTTP Error:', response.status, response.statusText);
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ API Response:', data);
+    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+      console.log('✅ API Response:', data);
+    }
     return data;
   } catch (error) {
-    console.error('❌ API request failed:', error);
-    console.error('🔗 Failed URL:', fullUrl);
+    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+      console.error('❌ API request failed:', error);
+      console.error('🔗 Failed URL:', fullUrl);
+    }
     throw error;
   }
 };

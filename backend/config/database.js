@@ -4,18 +4,18 @@ let pool = null;
 
 // Database configuration
 const config = {
-  server: process.env.DB_SERVER || '10.53.64.205',
+  server: process.env.DB_SERVER || 'YOUR_DATABASE_SERVER',
   port: parseInt(process.env.DB_PORT) || 1433,
-  user: process.env.DB_USER || 'ccet',
-  password: process.env.DB_PASSWORD || '!qaz7410',
-  database: process.env.DB_NAME || 'mes',
+  user: process.env.DB_USER || 'YOUR_DATABASE_USER',
+  password: process.env.DB_PASSWORD || 'YOUR_DATABASE_PASSWORD',
+  database: process.env.DB_NAME || 'YOUR_DATABASE_NAME',
   options: {
     encrypt: false,
     trustServerCertificate: true,
     enableArithAbort: true,
     requestTimeout: 60000,
     connectionTimeout: 60000,
-    server: process.env.DB_SERVER || '10.53.64.205',
+    server: process.env.DB_SERVER || 'YOUR_DATABASE_SERVER',
     port: parseInt(process.env.DB_PORT) || 1433,
     connectTimeout: 60000,
     cancelTimeout: 5000,

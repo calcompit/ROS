@@ -5,14 +5,18 @@ export const config = {
   wsUrl: import.meta.env.VITE_WS_URL || 'http://localhost:3001',
   
   // Windows backend URLs (when running backend on Windows)
-  windowsApiUrl: import.meta.env.VITE_WINDOWS_API_URL || 'http://10.53.64.205:3001/api',
-  windowsWsUrl: import.meta.env.VITE_WINDOWS_WS_URL || 'http://10.53.64.205:3001',
+  windowsApiUrl: import.meta.env.VITE_WINDOWS_API_URL || 'http://YOUR_WINDOWS_IP:3001/api',
+  windowsWsUrl: import.meta.env.VITE_WINDOWS_WS_URL || 'http://YOUR_WINDOWS_IP:3001',
   
   // Production URLs
-  productionApiUrl: import.meta.env.VITE_PRODUCTION_API_URL || 'https://wk-svr01.neofelis-mooneye.ts.net/api',
-  productionWsUrl: import.meta.env.VITE_PRODUCTION_WS_URL || 'https://wk-svr01.neofelis-mooneye.ts.net',
+  productionApiUrl: import.meta.env.VITE_PRODUCTION_API_URL || 'https://your-production-api.com/api',
+  productionWsUrl: import.meta.env.VITE_PRODUCTION_WS_URL || 'https://your-production-api.com',
   
   appEnv: import.meta.env.VITE_APP_ENV || 'development',
+  
+  // Security settings
+  enableDebug: import.meta.env.VITE_ENABLE_DEBUG === 'true' || import.meta.env.DEV,
+  enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
 };
 
 // Environment presets
@@ -23,13 +27,13 @@ export const environments = {
     name: 'Local Development'
   },
   windows: {
-    apiUrl: 'http://10.53.64.205:3001/api',
-    wsUrl: 'http://10.53.64.205:3001',
+    apiUrl: 'http://YOUR_WINDOWS_IP:3001/api',
+    wsUrl: 'http://YOUR_WINDOWS_IP:3001',
     name: 'Windows Backend'
   },
   production: {
-    apiUrl: 'https://wk-svr01.neofelis-mooneye.ts.net/api',
-    wsUrl: 'https://wk-svr01.neofelis-mooneye.ts.net',
+    apiUrl: 'https://your-production-api.com/api',
+    wsUrl: 'https://your-production-api.com',
     name: 'Production'
   }
 };
@@ -48,7 +52,7 @@ export const getWsUrl = () => {
 export const getCurrentEnvironment = () => {
   if (config.apiUrl.includes('localhost')) {
     return environments.local;
-  } else if (config.apiUrl.includes('10.53.64.205')) {
+  } else if (config.apiUrl.includes('YOUR_WINDOWS_IP') || config.apiUrl.includes('10.')) {
     return environments.windows;
   } else {
     return environments.production;
@@ -57,7 +61,7 @@ export const getCurrentEnvironment = () => {
 
 // Helper function to check if running on Windows backend
 export const isWindowsBackend = () => {
-  return config.apiUrl.includes('10.53.64.205');
+  return config.apiUrl.includes('YOUR_WINDOWS_IP') || config.apiUrl.includes('10.') || config.apiUrl.includes('192.168.');
 };
 
 // Helper function to check if running locally

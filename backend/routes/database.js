@@ -14,9 +14,9 @@ router.get('/status', async (req, res) => {
       data: {
         connected: isConnected,
         type: isConnected ? 'sqlserver' : 'demo',
-        server: process.env.DB_SERVER || '10.53.64.205',
-        database: process.env.DB_NAME || 'mes',
-        user: process.env.DB_USER || 'ccet'
+        server: process.env.DB_SERVER || 'YOUR_DATABASE_SERVER',
+        database: process.env.DB_NAME || 'YOUR_DATABASE_NAME',
+        user: process.env.DB_USER || 'YOUR_DATABASE_USER'
       }
     });
   } catch (error) {
@@ -41,7 +41,7 @@ router.post('/test-connection', async (req, res) => {
         data: {
           connected: true,
           type: 'sqlserver',
-          server: process.env.DB_SERVER || '10.53.64.205',
+          server: process.env.DB_SERVER || 'YOUR_DATABASE_SERVER',
           database: process.env.DB_NAME || 'mes'
         }
       });
@@ -82,7 +82,7 @@ router.post('/reconnect', async (req, res) => {
         data: {
           connected: true,
           type: 'sqlserver',
-          server: process.env.DB_SERVER || '10.53.64.205',
+          server: process.env.DB_SERVER || 'YOUR_DATABASE_SERVER',
           database: process.env.DB_NAME || 'mes'
         }
       });

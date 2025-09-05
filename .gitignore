@@ -75,3 +75,29 @@ ssl/
 # Backup files
 *.backup
 *.bak
+
+# Security sensitive files
+config.json
+secrets.json
+*.secret
+*.private
+
+# Production specific files
+.env.production
+.env.staging
+production-config.js
+
+# Database backups
+*.db.backup
+*.sqlite.backup
+
+# Log files
+*.log
+logs/
+error.log
+access.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
