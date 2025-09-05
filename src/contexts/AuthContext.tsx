@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { authApi } from '@/services/api';
 
 export interface User {
   id: string;
@@ -37,26 +38,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   const login = async (username: string, password: string, role: 'admin' | 'user'): Promise<boolean> => {
-    // Simple authentication logic - in a real app, this would be an API call
-    // For demo purposes, accept any username/password combination
-    if (username.trim() && password.trim()) {
-      const newUser: User = {
-        id: Date.now().toString(),
-        username: username.trim(),
-        role: role,
-        email: `${username.trim()}@example.com`
-      };
+    try {
+      // Use real API authentication
+      const response = await authApi.login({ username, password });
       
-      setUser(newUser);
-      localStorage.setItem('authUser', JSON.stringify(newUser));
-      return true;
+      if (response.success && response.data) {
+        const newUser: User = {
+          id: response.data.user.id.toString(),
+          username: response.data.user.username,
+          role: response.data.user.role,
+          email: `${response.data.user.username}@example.com`
+        };
+        
+        setUser(newUser);
+        localStorage.setItem('authUser', JSON.stringify(newUser));
+        localStorage.setItem('authToken', response.data.token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('authUser');
+    localStorage.removeItem('authToken');
   };
 
   const isAdmin = () => {
