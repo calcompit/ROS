@@ -38,8 +38,8 @@ const apiRequest = async <T>(
 ): Promise<ApiResponse<T>> => {
   const fullUrl = `${API_BASE_URL}${endpoint}`;
   
-  // Only log in development mode or when debug is enabled
-  if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+  // Only log in development mode
+  if (import.meta.env.DEV) {
     console.log('🌐 API Request:', fullUrl);
     console.log('📋 Options:', options);
   }
@@ -58,26 +58,26 @@ const apiRequest = async <T>(
       ...options,
     });
 
-    // Only log in development mode or when debug is enabled
-    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+    // Only log in development mode
+    if (import.meta.env.DEV) {
       console.log('📡 Response status:', response.status);
       console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
     }
 
     if (!response.ok) {
-      if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+      if (import.meta.env.DEV) {
         console.error('❌ HTTP Error:', response.status, response.statusText);
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+    if (import.meta.env.DEV) {
       console.log('✅ API Response:', data);
     }
     return data;
   } catch (error) {
-    if (import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG === 'true') {
+    if (import.meta.env.DEV) {
       console.error('❌ API request failed:', error);
       console.error('🔗 Failed URL:', fullUrl);
     }

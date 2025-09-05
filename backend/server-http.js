@@ -83,7 +83,10 @@ app.use(cors({
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.log(`🚫 CORS blocked origin: ${origin}`);
+      // Only show CORS blocking info in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🚫 CORS blocked origin: ${origin}`);
+      }
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -148,7 +151,12 @@ app.use('/api/database', databaseRoutes);
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error:', error);
+  // Only show detailed error info in development
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Global error:', error);
+  } else {
+    console.error('Global error occurred');
+  }
   res.status(500).json({
     success: false,
     message: 'Internal server error',
@@ -158,6 +166,10 @@ app.use((error, req, res, next) => {
 
 // 404 handler
 app.use('*', (req, res) => {
+  // Only show 404 details in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`❌ 404: ${req.method} ${req.originalUrl}`);
+  }
   res.status(404).json({
     success: false,
     message: 'API endpoint not found',
@@ -193,6 +205,12 @@ const startServer = async () => {
       if (localIP !== 'localhost') break;
     }
     
+    // Only show IP addresses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🌐 API base URL: http://${localIP}:${PORT}/api`);
+      console.log(`🔌 WebSocket URL: ws://${localIP}:${PORT}`);
+    }
+    
     // Create HTTP server
     const httpServer = http.createServer(app);
     
@@ -215,19 +233,28 @@ const startServer = async () => {
     // Socket.IO event handlers
     io.on('connection', (socket) => {
       console.log(`🔌 Client connected: ${socket.id}`);
-      console.log(`🔌 Client origin: ${socket.handshake.headers.origin}`);
-      console.log(`🔌 Client user agent: ${socket.handshake.headers['user-agent']}`);
+      // Only show detailed connection info in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔌 Client origin: ${socket.handshake.headers.origin}`);
+        console.log(`🔌 Client user agent: ${socket.handshake.headers['user-agent']}`);
+      }
       
       // Join room for real-time updates
       socket.on('join-room', (room) => {
         socket.join(room);
-        console.log(`👥 Client ${socket.id} joined room: ${room}`);
+        // Only show room info in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`👥 Client ${socket.id} joined room: ${room}`);
+        }
       });
       
       // Leave room
       socket.on('leave-room', (room) => {
         socket.leave(room);
-        console.log(`👋 Client ${socket.id} left room: ${room}`);
+        // Only show room info in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`👋 Client ${socket.id} left room: ${room}`);
+        }
       });
       
       socket.on('disconnect', () => {
@@ -242,8 +269,6 @@ const startServer = async () => {
     httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 HTTP Server running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
-      console.log(`🌐 API base URL: http://${localIP}:${PORT}/api`);
-      console.log(`🔌 WebSocket URL: ws://${localIP}:${PORT}`);
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
       if (!dbConnected) {
         console.log(`❌ Database connection failed`);
