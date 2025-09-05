@@ -60,7 +60,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
     const wsUrl = getWsUrl();
     
-    console.log('🔌 Connecting to WebSocket:', wsUrl);
+    if (import.meta.env.DEV) {
+      console.log('🔌 Connecting to WebSocket:', wsUrl);
+    }
     
     const newSocket = io(wsUrl, {
       transports: ['polling', 'websocket'],
@@ -84,26 +86,36 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket connected:', newSocket.id);
+      if (import.meta.env.DEV) {
+        console.log('✅ WebSocket connected:', newSocket.id);
+      }
       setIsConnected(true);
       
       // Join repair-orders room by default
       newSocket.emit('join-room', 'repair-orders');
-      console.log('👥 Auto-joined repair-orders room');
+      if (import.meta.env.DEV) {
+        console.log('👥 Auto-joined repair-orders room');
+      }
     });
 
     newSocket.on('disconnect', () => {
-      console.log('❌ WebSocket disconnected');
+      if (import.meta.env.DEV) {
+        console.log('❌ WebSocket disconnected');
+      }
       setIsConnected(false);
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('❌ WebSocket connection error:', error);
+      if (import.meta.env.DEV) {
+        console.error('❌ WebSocket connection error:', error);
+      }
       setIsConnected(false);
       
       // Try to reconnect with different transport if websocket fails
       if (error.message.includes('websocket')) {
-        console.log('🔄 Trying to reconnect with polling transport...');
+        if (import.meta.env.DEV) {
+          console.log('🔄 Trying to reconnect with polling transport...');
+        }
         setTimeout(() => {
           newSocket.io.opts.transports = ['polling'];
           newSocket.connect();
@@ -112,13 +124,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('order-created', (data) => {
-      console.log('📡 Order created event received:', data);
-      console.log('📡 Data structure:', {
-        data: data.data,
-        orderNo: data.orderNo,
-        fullData: data
-      });
-      console.log('📡 Registered handlers count:', orderCreatedHandlersRef.current.length);
+      if (import.meta.env.DEV) {
+        console.log('📡 Order created event received:', data);
+        console.log('📡 Data structure:', {
+          data: data.data,
+          orderNo: data.orderNo,
+          fullData: data
+        });
+        console.log('📡 Registered handlers count:', orderCreatedHandlersRef.current.length);
+      }
       
       toast({
         title: "🆕 New Repair Order",
@@ -127,41 +141,53 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       
       // Call all registered handlers
       orderCreatedHandlersRef.current.forEach((handler, index) => {
-        console.log(`📡 Calling order-created handler ${index + 1}:`, handler);
+        if (import.meta.env.DEV) {
+          console.log(`📡 Calling order-created handler ${index + 1}:`, handler);
+        }
         try {
           handler(data);
         } catch (error) {
-          console.error(`📡 Error in order-created handler ${index + 1}:`, error);
+          if (import.meta.env.DEV) {
+            console.error(`📡 Error in order-created handler ${index + 1}:`, error);
+          }
         }
       });
     });
 
     newSocket.on('order-updated', (data) => {
-      console.log('📡 Order updated event received:', data);
-      console.log('📡 Event data structure:', {
-        orderNo: data.orderNo,
-        data: data.data,
-        action: data.action
-      });
-      console.log('📡 Registered handlers count:', orderUpdatedHandlersRef.current.length);
-      console.log('📡 All registered handlers:', orderUpdatedHandlersRef.current);
+      if (import.meta.env.DEV) {
+        console.log('📡 Order updated event received:', data);
+        console.log('📡 Event data structure:', {
+          orderNo: data.orderNo,
+          data: data.data,
+          action: data.action
+        });
+        console.log('📡 Registered handlers count:', orderUpdatedHandlersRef.current.length);
+        console.log('📡 All registered handlers:', orderUpdatedHandlersRef.current);
+      }
       toast({
         title: "✏️ Repair Order Updated",
         description: `Order ${data.orderNo || data.data?.order_no} has been updated`,
       });
       // Call all registered handlers
       orderUpdatedHandlersRef.current.forEach((handler, index) => {
-        console.log(`📡 Calling handler ${index + 1}:`, handler);
+        if (import.meta.env.DEV) {
+          console.log(`📡 Calling handler ${index + 1}:`, handler);
+        }
         try {
           handler(data);
         } catch (error) {
-          console.error(`📡 Error in handler ${index + 1}:`, error);
+          if (import.meta.env.DEV) {
+            console.error(`📡 Error in handler ${index + 1}:`, error);
+          }
         }
       });
     });
 
     newSocket.on('order-deleted', (data) => {
-      console.log('📡 Order deleted:', data);
+      if (import.meta.env.DEV) {
+        console.log('📡 Order deleted:', data);
+      }
       toast({
         title: "🗑️ Repair Order Deleted",
         description: `Order ${data.orderNo} has been deleted`,
@@ -173,7 +199,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     setSocket(newSocket);
 
     return () => {
-      console.log('🔌 Disconnecting WebSocket');
+      if (import.meta.env.DEV) {
+        console.log('🔌 Disconnecting WebSocket');
+      }
       newSocket.disconnect();
     };
   }, [toast]);
@@ -181,14 +209,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const joinRoom = (room: string) => {
     if (socket) {
       socket.emit('join-room', room);
-      console.log(`👥 Joined room: ${room}`);
+      if (import.meta.env.DEV) {
+        console.log(`👥 Joined room: ${room}`);
+      }
     }
   };
 
   const leaveRoom = (room: string) => {
     if (socket) {
       socket.emit('leave', room);
-      console.log(`👋 Left room: ${room}`);
+      if (import.meta.env.DEV) {
+        console.log(`👋 Left room: ${room}`);
+      }
     }
   };
 

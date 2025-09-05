@@ -80,37 +80,45 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   const fetchDashboardStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      console.log('📊 Fetching dashboard stats with filters:', {
-        date: dateFilter,
-        period: periodFilter
-      });
+      if (import.meta.env.DEV) {
+        console.log('📊 Fetching dashboard stats with filters:', {
+          date: dateFilter,
+          period: periodFilter
+        });
+      }
       const response = await repairOrdersApi.getStats({
         date: dateFilter,
         period: periodFilter
       });
       
       if (response.success) {
-        console.log('📊 Dashboard stats received:', response.data);
-        console.log('📊 Filter applied:', {
-          date: dateFilter,
-          period: periodFilter
-        });
-        console.log('📊 Status counts:', {
-          total: response.data.total,
-          pending: response.data.pending,
-          inProgress: response.data.inProgress,
-          completed: response.data.completed,
-          cancelled: response.data.cancelled
-        });
-        console.log('📊 Monthly trends:', response.data.monthlyTrends);
-        console.log('📊 Department data:', response.data.byDepartment);
-        console.log('📊 Device type data:', response.data.byDeviceType);
+        if (import.meta.env.DEV) {
+          console.log('📊 Dashboard stats received:', response.data);
+          console.log('📊 Filter applied:', {
+            date: dateFilter,
+            period: periodFilter
+          });
+          console.log('📊 Status counts:', {
+            total: response.data.total,
+            pending: response.data.pending,
+            inProgress: response.data.inProgress,
+            completed: response.data.completed,
+            cancelled: response.data.cancelled
+          });
+          console.log('📊 Monthly trends:', response.data.monthlyTrends);
+          console.log('📊 Department data:', response.data.byDepartment);
+          console.log('📊 Device type data:', response.data.byDeviceType);
+        }
         setDashboardStats(response.data);
       } else {
-        console.error('Failed to fetch dashboard stats:', response.message);
+        if (import.meta.env.DEV) {
+          console.error('Failed to fetch dashboard stats:', response.message);
+        }
       }
     } catch (err) {
-      console.error('Error fetching dashboard stats:', err);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching dashboard stats:', err);
+      }
     } finally {
       setStatsLoading(false);
     }
@@ -119,7 +127,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   // Fetch tickets from API
   const fetchTickets = useCallback(async () => {
     try {
-      console.log('📡 Fetching tickets from API...');
+      if (import.meta.env.DEV) {
+        console.log('📡 Fetching tickets from API...');
+      }
       setLoading(true);
       setError(null);
       
@@ -127,27 +137,35 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
       const response = await repairOrdersApi.getAll({ limit: 1000 }); // Fetch more than default limit
       
       if (response.success) {
-        console.log('✅ API response received:', response.data);
-        console.log('📊 Tickets count:', response.data.length);
-        console.log('📊 Tickets details:', response.data.map(t => ({
-          order_no: t.order_no,
-          subject: t.subject,
-          status: t.status,
-          last_date: t.last_date
-        })));
+        if (import.meta.env.DEV) {
+          console.log('✅ API response received:', response.data);
+          console.log('📊 Tickets count:', response.data.length);
+          console.log('📊 Tickets details:', response.data.map(t => ({
+            order_no: t.order_no,
+            subject: t.subject,
+            status: t.status,
+            last_date: t.last_date
+          })));
+        }
         setTickets(response.data);
         setError(null);
 
       } else {
-        console.error('❌ API response failed:', response.message);
+        if (import.meta.env.DEV) {
+          console.error('❌ API response failed:', response.message);
+        }
         setError('Failed to fetch tickets');
       }
     } catch (err) {
-      console.error('❌ Error fetching tickets:', err);
+      if (import.meta.env.DEV) {
+        console.error('❌ Error fetching tickets:', err);
+      }
       setError('Failed to connect to server');
     } finally {
       setLoading(false);
-      console.log('📡 Fetch tickets completed');
+      if (import.meta.env.DEV) {
+        console.log('📡 Fetch tickets completed');
+      }
     }
   }, []);
   
@@ -164,47 +182,59 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
 
   // Load dashboard stats on component mount and when date/period filters change
   useEffect(() => {
-    console.log('🔄 Fetching dashboard stats due to filter change:', { dateFilter, periodFilter });
+    if (import.meta.env.DEV) {
+      console.log('🔄 Fetching dashboard stats due to filter change:', { dateFilter, periodFilter });
+    }
     fetchDashboardStats();
   }, [dateFilter, periodFilter]);
 
   // Debug dashboard stats changes
   useEffect(() => {
-    console.log('📊 Dashboard stats updated:', {
-      total: dashboardStats?.total,
-      pending: dashboardStats?.pending,
-      inProgress: dashboardStats?.inProgress,
-      completed: dashboardStats?.completed,
-      cancelled: dashboardStats?.cancelled,
-      byDepartment: dashboardStats?.byDepartment?.length,
-      byDeviceType: dashboardStats?.byDeviceType?.length,
-      monthlyTrends: dashboardStats?.monthlyTrends?.length
-    });
+    if (import.meta.env.DEV) {
+      console.log('📊 Dashboard stats updated:', {
+        total: dashboardStats?.total,
+        pending: dashboardStats?.pending,
+        inProgress: dashboardStats?.inProgress,
+        completed: dashboardStats?.completed,
+        cancelled: dashboardStats?.cancelled,
+        byDepartment: dashboardStats?.byDepartment?.length,
+        byDeviceType: dashboardStats?.byDeviceType?.length,
+        monthlyTrends: dashboardStats?.monthlyTrends?.length
+      });
+    }
   }, [dashboardStats]);
 
   // WebSocket event handlers - use useCallback to prevent infinite re-renders
   const handleOrderCreated = useCallback((data: any) => {
-    console.log('🔄 Real-time: Order created:', data);
-    console.log('🔄 Data structure:', {
-      data: data.data,
-      orderNo: data.orderNo,
-      fullData: data
-    });
+    if (import.meta.env.DEV) {
+      console.log('🔄 Real-time: Order created:', data);
+      console.log('🔄 Data structure:', {
+        data: data.data,
+        orderNo: data.orderNo,
+        fullData: data
+      });
+    }
     
     // Try different possible data structures
     const newTicket = data.data || data.order || data;
     
     if (newTicket && newTicket.order_no) {
-      console.log('🔄 Adding new ticket:', newTicket);
+      if (import.meta.env.DEV) {
+        console.log('🔄 Adding new ticket:', newTicket);
+      }
       
       // Check if ticket already exists to prevent duplicates
       setTickets(prev => {
         const exists = prev.some(ticket => ticket.order_no === newTicket.order_no);
         if (exists) {
-          console.log('🔄 Ticket already exists, skipping duplicate:', newTicket.order_no);
+          if (import.meta.env.DEV) {
+            console.log('🔄 Ticket already exists, skipping duplicate:', newTicket.order_no);
+          }
           return prev;
         }
-        console.log('🔄 Adding new ticket to state:', newTicket.order_no);
+        if (import.meta.env.DEV) {
+          console.log('🔄 Adding new ticket to state:', newTicket.order_no);
+        }
         
         // Add new ticket and sort by priority and status
         const updatedTickets = [newTicket, ...prev];
@@ -307,7 +337,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           ];
         }
         
-        console.log('🔄 Updated dashboard stats:', newStats);
+        if (import.meta.env.DEV) {
+          console.log('🔄 Updated dashboard stats:', newStats);
+        }
         return newStats;
       });
     } else {
@@ -316,26 +348,34 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   }, []);
 
   const handleOrderUpdated = useCallback((data: any) => {
-    console.log('🔄 Real-time: Order updated:', data);
-    console.log('🔄 Updated ticket data:', data.data);
-    console.log('🔄 Order number:', data.orderNo);
+    if (import.meta.env.DEV) {
+      console.log('🔄 Real-time: Order updated:', data);
+      console.log('🔄 Updated ticket data:', data.data);
+      console.log('🔄 Order number:', data.orderNo);
+    }
     
     const updatedTicket = data.data;
     const orderNo = data.orderNo;
     
     if (updatedTicket && orderNo) {
-      console.log('🔄 Processing order update for order:', orderNo);
-      console.log('🔄 New status:', updatedTicket.status);
+      if (import.meta.env.DEV) {
+        console.log('🔄 Processing order update for order:', orderNo);
+        console.log('🔄 New status:', updatedTicket.status);
+      }
       
       // Update tickets and stats together
       setTickets(prev => {
-        console.log('🔄 Previous tickets count:', prev.length);
-        console.log('🔄 Previous tickets:', prev.map(t => ({ order_no: t.order_no, status: t.status })));
+        if (import.meta.env.DEV) {
+          console.log('🔄 Previous tickets count:', prev.length);
+          console.log('🔄 Previous tickets:', prev.map(t => ({ order_no: t.order_no, status: t.status })));
+        }
         
         // Check if ticket exists before updating
         const ticketExists = prev.some(ticket => ticket.order_no.toString() === orderNo.toString());
         if (!ticketExists) {
-          console.log('🔄 Ticket not found in state, adding new ticket:', orderNo);
+          if (import.meta.env.DEV) {
+            console.log('🔄 Ticket not found in state, adding new ticket:', orderNo);
+          }
           return [updatedTicket, ...prev];
         }
         
@@ -343,8 +383,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           ticket.order_no.toString() === orderNo.toString() ? updatedTicket : ticket
         );
         
-        console.log('🔄 New tickets count:', newTickets.length);
-        console.log('🔄 New tickets:', newTickets.map(t => ({ order_no: t.order_no, status: t.status })));
+        if (import.meta.env.DEV) {
+          console.log('🔄 New tickets count:', newTickets.length);
+          console.log('🔄 New tickets:', newTickets.map(t => ({ order_no: t.order_no, status: t.status })));
+        }
         
         // Update stats and chart data immediately with new tickets
         setDashboardStats(prevStats => {
@@ -355,7 +397,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
           const completedCount = newTickets.filter(t => t.status === 'completed').length;
           const cancelledCount = newTickets.filter(t => t.status === 'cancelled').length;
           
-          console.log('🔄 Status counts:', { pending: pendingCount, inProgress: inProgressCount, completed: completedCount, cancelled: cancelledCount });
+          if (import.meta.env.DEV) {
+            console.log('🔄 Status counts:', { pending: pendingCount, inProgress: inProgressCount, completed: completedCount, cancelled: cancelledCount });
+          }
           
           // Update department data
           const deptCounts: { [key: string]: number } = {};
@@ -384,8 +428,12 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
             byDeviceType: Object.entries(deviceCounts).map(([device_type, count]) => ({ device_type, count }))
           };
           
+          if (import.meta.env.DEV) {
           console.log('🔄 Updated dashboard stats:', newStats);
-          console.log('🔄 In-progress count:', newStats.inProgress);
+        }
+          if (import.meta.env.DEV) {
+            console.log('🔄 In-progress count:', newStats.inProgress);
+          }
           
           return newStats;
         });
@@ -396,53 +444,73 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
   }, []);
 
   const handleOrderDeleted = useCallback((data: any) => {
-    console.log('🔄 Real-time: Order deleted:', data);
-    console.log('🔄 Order number to delete:', data.orderNo);
+    if (import.meta.env.DEV) {
+      console.log('🔄 Real-time: Order deleted:', data);
+      console.log('🔄 Order number to delete:', data.orderNo);
+    }
     const orderNo = data.orderNo;
     
     if (orderNo) {
-      console.log('🔄 Removing ticket from state...');
+      if (import.meta.env.DEV) {
+        console.log('🔄 Removing ticket from state...');
+      }
       // Remove ticket with fade-out animation
       setTickets(prev => {
         const newTickets = prev.filter(ticket => ticket.order_no && ticket.order_no.toString() !== orderNo.toString());
-        console.log('🔄 Tickets after removal:', newTickets.length);
+        if (import.meta.env.DEV) {
+          console.log('🔄 Tickets after removal:', newTickets.length);
+        }
         return newTickets;
       });
       
       // Refresh dashboard stats to update charts
       setTimeout(() => {
-        console.log('🔄 Refreshing dashboard stats after order deletion...');
-        console.log('🔄 Calling fetchDashboardStats...');
+        if (import.meta.env.DEV) {
+          console.log('🔄 Refreshing dashboard stats after order deletion...');
+          console.log('🔄 Calling fetchDashboardStats...');
+        }
         fetchDashboardStats();
       }, 100);
     } else {
-      console.log('❌ No order number found in delete event');
+      if (import.meta.env.DEV) {
+        console.log('❌ No order number found in delete event');
+      }
     }
   }, [fetchDashboardStats]);
 
   // Set up WebSocket event listeners for real-time updates
   useEffect(() => {
-    console.log('🔄 Setting up WebSocket event listeners...');
-    console.log('🔄 WebSocket connected:', wsConnected);
-    console.log('🔄 Current tickets count:', tickets.length);
-    console.log('🔄 fetchTicketsRef.current:', fetchTicketsRef.current);
-    console.log('🔄 fetchDashboardStatsRef.current:', fetchDashboardStatsRef.current);
+    if (import.meta.env.DEV) {
+      console.log('🔄 Setting up WebSocket event listeners...');
+      console.log('🔄 WebSocket connected:', wsConnected);
+      console.log('🔄 Current tickets count:', tickets.length);
+      console.log('🔄 fetchTicketsRef.current:', fetchTicketsRef.current);
+      console.log('🔄 fetchDashboardStatsRef.current:', fetchDashboardStatsRef.current);
+    }
     
     if (!wsConnected) {
-      console.log('🔄 WebSocket not connected, skipping event setup');
+      if (import.meta.env.DEV) {
+        console.log('🔄 WebSocket not connected, skipping event setup');
+      }
       return;
     }
 
-    console.log('🔄 Registering event listeners...');
+    if (import.meta.env.DEV) {
+      console.log('🔄 Registering event listeners...');
+    }
     // Register event listeners
     onOrderCreated(handleOrderCreated);
     onOrderUpdated(handleOrderUpdated);
     onOrderDeleted(handleOrderDeleted);
-    console.log('🔄 Event listeners registered successfully');
+    if (import.meta.env.DEV) {
+      console.log('🔄 Event listeners registered successfully');
+    }
 
     // Cleanup event listeners
     return () => {
-      console.log('🔄 Cleaning up event listeners...');
+      if (import.meta.env.DEV) {
+        console.log('🔄 Cleaning up event listeners...');
+      }
       offOrderCreated(handleOrderCreated);
       offOrderUpdated(handleOrderUpdated);
       offOrderDeleted(handleOrderDeleted);
@@ -893,7 +961,9 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                   { label: 'Completed', value: stats.completed, color: 'hsl(142, 76%, 36%)' },
                   { label: 'Cancelled', value: stats.cancelled || 0, color: 'hsl(0, 84%, 60%)' }
                 ];
-                console.log('📊 Status Distribution Chart Data:', chartData);
+                if (import.meta.env.DEV) {
+                  console.log('📊 Status Distribution Chart Data:', chartData);
+                }
                 return chartData;
               })()}
               icon={PieChart}
@@ -921,8 +991,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                     })) || [
                       { label: 'No Data', value: 0 }
                     ];
-                    console.log('📊 Dynamic Trends Chart Data:', chartData);
-                    console.log('📊 Monthly Trends Raw Data:', dashboardStats?.monthlyTrends);
+                    if (import.meta.env.DEV) {
+                      console.log('📊 Dynamic Trends Chart Data:', chartData);
+                      console.log('📊 Monthly Trends Raw Data:', dashboardStats?.monthlyTrends);
+                    }
                     return chartData;
                   })()}
                   icon={BarChart3}
@@ -942,8 +1014,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                         value: dept.count,
                         color: `hsl(${index * 60}, 70%, 60%)`
                       }));
-                      console.log('📊 Department Distribution Chart Data:', chartData);
-                      console.log('📊 Department Raw Data:', dashboardStats?.byDepartment);
+                      if (import.meta.env.DEV) {
+                        console.log('📊 Department Distribution Chart Data:', chartData);
+                        console.log('📊 Department Raw Data:', dashboardStats?.byDepartment);
+                      }
                       return chartData;
                     })()}
                     icon={Activity}
@@ -958,8 +1032,10 @@ const Dashboard = ({ initialTab = 'overview', onTicketCountUpdate }: DashboardPr
                         value: device.count,
                         color: `hsl(${index * 45 + 180}, 70%, 60%)`
                       }));
-                      console.log('📊 Device Type Distribution Chart Data:', chartData);
-                      console.log('📊 Device Type Raw Data:', dashboardStats?.byDeviceType);
+                      if (import.meta.env.DEV) {
+                        console.log('📊 Device Type Distribution Chart Data:', chartData);
+                        console.log('📊 Device Type Raw Data:', dashboardStats?.byDeviceType);
+                      }
                       return chartData;
                     })()}
                     icon={Activity}
