@@ -130,6 +130,20 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Cross-browser text size adjustment */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    
+    /* Cross-browser user selection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /* Cross-browser forced color adjustment */
+    -webkit-forced-color-adjust: auto;
+    forced-color-adjust: auto;
   }
 }
 
