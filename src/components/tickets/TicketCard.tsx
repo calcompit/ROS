@@ -1,0 +1,551 @@
+import { useState, useEffect } from 'react';
+import { Calendar, Clock, User, AlertCircle, Eye, Edit, X, Trash2, Save, Monitor, Laptop, Smartphone } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import EditTicketForm from './EditTicketForm';
+import { formatThailandDate, formatThailandDateTime } from '@/lib/utils';
+
+export interface Ticket {
+  // Database fields (internal)
+  order_no: string | number;     // Primary key
+  subject: string;               // Issue description
+  name: string;                  // PC/Device name
+  dept: string;                  // Department
+  emp: string;                   // Employee who reported
+  device_type?: string;          // Device type from database
+  insert_date: string;           // Creation date
+  items?: string;                // Equipment/items details
+  rootcause?: string;            // Root cause analysis
+  action?: string;               // Action taken
+  emprepair?: string;            // Technician assigned (from database: emprepair)
+  last_date: string;             // Last update date
+  status: string;                // Status from database
+  
+  // Optional display fields
+  deviceType?: string;           // Device type (Laptop, PC, etc.) - for compatibility
+  notes?: string;                // Additional notes
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+}
+
+interface TicketCardProps {
+  ticket: Ticket;
+  onTicketUpdate?: (updatedTicket: Ticket) => Promise<void>;
+  onTicketDelete?: (orderNo: string | number) => Promise<void>;
+  isHighlighted?: boolean;
+}
+
+const TicketCard = ({ ticket, onTicketUpdate, onTicketDelete, isHighlighted = false }: TicketCardProps) => {
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [statusAnimation, setStatusAnimation] = useState(false);
+  const [previousStatus, setPreviousStatus] = useState(ticket.status);
+  const { isAdmin } = useAuth();
+
+  // Animate status change
+  useEffect(() => {
+    if (previousStatus !== ticket.status) {
+      setStatusAnimation(true);
+      setPreviousStatus(ticket.status);
+      setTimeout(() => setStatusAnimation(false), 1000);
+    }
+  }, [ticket.status, previousStatus]);
+
+  // Helper functions for display names and formatting
+  const getDisplayName = (field: keyof Ticket): string => {
+    const displayNames = {
+      order_no: 'Order Number',
+      subject: 'Issue Description',
+      name: 'Device/PC Name',
+      dept: 'Department',
+      emp: 'Reported By',
+      insert_date: 'Created Date',
+      items: 'Equipment/Items Details',
+      rootcause: 'Root Cause Analysis',
+      action: 'Action Taken',
+      emprepair: 'Assigned Technician',
+      last_date: 'Last Updated',
+      status: 'Status',
+      deviceType: 'Device Type',
+      device_type: 'Device Type',
+      notes: 'Notes',
+      priority: 'Priority'
+    };
+    return displayNames[field] || field;
+  };
+
+  const getStatusColor = (status: Ticket['status']) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-warning/10 text-warning border-warning/20';
+      case 'in-progress':
+      case 'inprogress':
+        return 'bg-primary/10 text-primary border-primary/20';
+      case 'completed':
+      case 'success':
+        return 'bg-success/10 text-success border-success/20';
+      case 'cancelled':
+      case 'canceled':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getPriorityColor = (priority: Ticket['priority']) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-500 text-white border-red-600 shadow-lg';
+      case 'high':
+        return 'bg-orange-500 text-white border-orange-600 shadow-md';
+      case 'medium':
+        return 'bg-blue-500 text-white border-blue-600';
+      case 'low':
+        return 'bg-gray-400 text-white border-gray-500';
+      default:
+        return 'bg-gray-400 text-white border-gray-500';
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    return status.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  // Get device type icon
+  const getDeviceTypeIcon = (deviceType: string) => {
+    switch (deviceType?.toLowerCase()) {
+      case 'computer':
+      case 'pc':
+      case 'desktop':
+        return <Monitor className="h-4 w-4 text-blue-600" />;
+      case 'laptop':
+      case 'notebook':
+        return <Laptop className="h-4 w-4 text-green-600" />;
+      case 'other':
+        return <Smartphone className="h-4 w-4 text-purple-600" />;
+      default:
+        return <Smartphone className="h-4 w-4 text-purple-600" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return formatThailandDateTime(dateString);
+  };
+
+  const handleTicketSave = async (updatedTicket: Ticket) => {
+    setIsSaving(true);
+    try {
+      onTicketUpdate?.(updatedTicket);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onTicketDelete?.(ticket.order_no);
+      setShowDeleteConfirm(false);
+      setIsDetailOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Auto-open dialog when ticket is highlighted from notification
+  useEffect(() => {
+    if (isHighlighted) {
+      setIsDetailOpen(true);
+      // Clear highlight after opening dialog
+      setTimeout(() => {
+        window.location.hash = 'tickets';
+      }, 100);
+    }
+  }, [isHighlighted]);
+
+  return (
+    <>
+      <Card className={`flex flex-col h-full shadow-card hover:shadow-hover transition-all duration-300 ${
+        isHighlighted 
+          ? 'border-primary border-2 ring-2 ring-primary/20 shadow-lg' 
+          : 'border-border'
+      }`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-foreground text-sm">{ticket.order_no}</h3>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs text-muted-foreground">{ticket.dept}</span>
+              </div>
+              <h4 className="font-medium text-foreground line-clamp-1 text-sm">{ticket.subject}</h4>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p><span className="font-medium">Device:</span> {ticket.name}</p>
+                <p><span className="font-medium">Reported by:</span> {ticket.emp}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 items-end">
+              {/* Priority Badge - Show first for importance */}
+              {ticket.priority && (
+                <Badge className={`${getPriorityColor(ticket.priority)} font-bold text-xs px-2 py-1 pointer-events-none`}>
+                  {ticket.priority.toUpperCase()}
+                </Badge>
+              )}
+              
+              {/* Status Badge */}
+              <Badge 
+                variant="outline" 
+                className={`${getStatusColor(ticket.status)} transition-all duration-500 hover:scale-105 ${
+                  statusAnimation ? 'animate-pulse scale-110 ring-2 ring-primary/30' : ''
+                }`}
+              >
+                {formatStatus(ticket.status)}
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0 flex-1">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>{formatThailandDate(ticket.insert_date)}</span>
+              </div>
+              {(ticket.device_type || ticket.deviceType) && (
+                <div className="flex items-center gap-1">
+                  {getDeviceTypeIcon(ticket.device_type || ticket.deviceType)}
+                  <span>{ticket.device_type || ticket.deviceType}</span>
+                </div>
+              )}
+            </div>
+
+            {ticket.emprepair && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span>Assigned to {ticket.emprepair}</span>
+              </div>
+            )}
+
+            {/* Technical Information - Compact Design */}
+            <div className="space-y-1.5">
+              {ticket.rootcause && ticket.rootcause.trim() !== '' && (
+                <div className="flex items-center gap-2 p-2 rounded bg-red-50/80 border-l-3 border-red-500 dark:bg-red-950/10">
+                  <div className="text-xs font-medium text-red-600 dark:text-red-400 min-w-0 flex-shrink-0 text-center">
+                    <div>Root</div>
+                    <div>Cause</div>
+                  </div>
+                  <div className="text-xs text-red-600 dark:text-red-400 min-w-0 flex-shrink-0">:</div>
+                  <div className="text-xs text-red-700 dark:text-red-300 line-clamp-2 min-w-0">{ticket.rootcause}</div>
+                </div>
+              )}
+              
+              {ticket.action && ticket.action.trim() !== '' && (
+                <div className="flex items-center gap-2 p-2 rounded bg-amber-50/80 border-l-3 border-amber-500 dark:bg-amber-950/10">
+                  <div className="text-xs font-medium text-amber-600 dark:text-amber-400 min-w-0 flex-shrink-0 text-center">Action</div>
+                  <div className="text-xs text-amber-600 dark:text-amber-400 min-w-0 flex-shrink-0">:</div>
+                  <div className="text-xs text-amber-700 dark:text-amber-300 line-clamp-2 min-w-0">{ticket.action}</div>
+                </div>
+              )}
+
+              {ticket.items && ticket.items.trim() !== '' && (
+                <div className="flex items-center gap-2 p-2 rounded bg-yellow-50/80 border-l-3 border-yellow-500 dark:bg-yellow-950/10">
+                  <div className="text-xs font-medium text-yellow-600 dark:text-yellow-400 min-w-0 flex-shrink-0 text-center">Items</div>
+                  <div className="text-xs text-yellow-600 dark:text-yellow-400 min-w-0 flex-shrink-0">:</div>
+                  <div className="text-xs text-yellow-700 dark:text-yellow-300 line-clamp-2 min-w-0">{ticket.items}</div>
+                </div>
+              )}
+
+              {ticket.notes && ticket.notes.trim() !== '' && (
+                <div className="flex items-center gap-2 p-2 rounded bg-blue-50/80 border-l-3 border-blue-500 dark:bg-blue-950/10">
+                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400 min-w-0 flex-shrink-0 text-center">Notes</div>
+                  <div className="text-xs text-blue-600 dark:text-blue-400 min-w-0 flex-shrink-0">:</div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300 line-clamp-2 min-w-0">{ticket.notes}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+
+        {/* View Details Button - Fixed at bottom for consistent card height */}
+        <div className="px-6 pb-4 mt-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={() => setIsDetailOpen(true)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
+          </Button>
+        </div>
+      </Card>
+
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl w-[95vw] h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          {/* Header - Fixed */}
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 relative rounded-t-lg">
+            <div className="flex items-center">
+              <div className="flex-1"></div>
+              <DialogHeader className="text-center flex-1">
+                <DialogTitle>
+                  {isEditing ? `Edit Order - ${ticket.order_no}` : `Order Details - ${ticket.order_no}`}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsDetailOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Body - Scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+            {/* Description */}
+            <div className="text-sm text-muted-foreground">
+              {isEditing 
+                ? "Update repair order information (Admin access)" 
+                : `Complete information about repair order for ${ticket.dept}`}
+            </div>
+
+            {isEditing ? (
+              <EditTicketForm 
+                ticket={ticket}
+                onSave={handleTicketSave}
+                onCancel={handleEditCancel}
+                onDelete={onTicketDelete}
+              />
+            ) : (
+              <>
+            {/* Header Information */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('order_no')}</label>
+                <p className="text-lg font-semibold text-foreground mt-1">{ticket.order_no}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('status')}</label>
+                <Badge variant="outline" className={`${getStatusColor(ticket.status)} mt-1`}>
+                  {formatStatus(ticket.status)}
+                </Badge>
+              </div>
+              {ticket.priority && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">{getDisplayName('priority')}</label>
+                  <Badge variant="outline" className={`${getPriorityColor(ticket.priority)} mt-1`}>
+                    {ticket.priority.toUpperCase()}
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Subject and Description */}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">{getDisplayName('subject')}</label>
+              <h3 className="text-lg font-semibold text-foreground mt-1">{ticket.subject}</h3>
+            </div>
+
+            {/* Device and Reporter Information */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('name')}</label>
+                <p className="text-foreground mt-1">{ticket.name}</p>
+              </div>
+              {(ticket.device_type || ticket.deviceType) && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">{getDisplayName('deviceType')}</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getDeviceTypeIcon(ticket.device_type || ticket.deviceType)}
+                    <span className="text-foreground">{ticket.device_type || ticket.deviceType}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('dept')}</label>
+                <p className="text-foreground mt-1">{ticket.dept}</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('emp')}</label>
+                <p className="text-foreground mt-1">{ticket.emp}</p>
+              </div>
+              {ticket.emprepair && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">{getDisplayName('emprepair')}</label>
+                  <p className="text-foreground mt-1">{ticket.emprepair}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Technical Information - Clean Design */}
+            <div className="space-y-3">
+              {ticket.rootcause && ticket.rootcause.trim() !== '' && (
+                <div className="border-l-4 border-red-500 pl-4 py-2 bg-red-50/50 dark:bg-red-950/10">
+                  <label className="text-sm font-medium text-red-700 dark:text-red-300">{getDisplayName('rootcause')}</label>
+                  <p className="text-red-600 dark:text-red-400 mt-1 leading-relaxed">{ticket.rootcause}</p>
+                </div>
+              )}
+
+              {ticket.action && ticket.action.trim() !== '' && (
+                <div className="border-l-4 border-amber-500 pl-4 py-2 bg-amber-50/50 dark:bg-amber-950/10">
+                  <label className="text-sm font-medium text-amber-700 dark:text-amber-300">{getDisplayName('action')}</label>
+                  <p className="text-amber-600 dark:text-amber-400 mt-1 leading-relaxed">{ticket.action}</p>
+                </div>
+              )}
+
+              {ticket.items && ticket.items.trim() !== '' && (
+                <div className="border-l-4 border-yellow-500 pl-4 py-2 bg-yellow-50/50 dark:bg-yellow-950/10">
+                  <label className="text-sm font-medium text-yellow-700 dark:text-yellow-300">{getDisplayName('items')}</label>
+                  <p className="text-yellow-600 dark:text-yellow-400 mt-1 leading-relaxed">{ticket.items}</p>
+                </div>
+              )}
+
+              {ticket.notes && ticket.notes.trim() !== '' && (
+                <div className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50/50 dark:bg-blue-950/10">
+                  <label className="text-sm font-medium text-blue-700 dark:text-blue-300">{getDisplayName('notes')}</label>
+                  <p className="text-blue-600 dark:text-blue-400 mt-1 leading-relaxed">{ticket.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Timestamps */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('insert_date')}</label>
+                <p className="text-foreground mt-1">{formatDate(ticket.insert_date)}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">{getDisplayName('last_date')}</label>
+                <p className="text-foreground mt-1">
+                  {ticket.last_date && ticket.last_date !== '' 
+                    ? formatDate(ticket.last_date) 
+                    : formatDate(ticket.insert_date)
+                  }
+                </p>
+              </div>
+            </div>
+
+              </>
+            )}
+          </div>
+
+          {/* Footer - Fixed */}
+          <div className="mt-auto bg-background border-t px-6 py-4 rounded-b-lg">
+            {isEditing ? (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleEditCancel}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1 transition-all duration-200"
+                  form="edit-ticket-form"
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+                <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      className="flex-1"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ยืนยันการลบ Repair Order</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        คุณแน่ใจหรือไม่ที่จะลบ Repair Order <strong>{ticket.order_no}</strong>?<br/>
+                        การดำเนินการนี้ไม่สามารถยกเลิกได้
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isDeleting}>ยกเลิก</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={confirmDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? 'กำลังลบ...' : 'ลบ'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="flex-1">
+                  Download Report
+                </Button>
+                <Button className="flex-1">
+                  Contact Support
+                </Button>
+                {isAdmin() && (
+                  <Button 
+                    variant="secondary" 
+                    className="flex-1"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default TicketCard;

@@ -1,0 +1,7 @@
+/*    /index.html   200
+
+# Cache control for favicon files
+/favicon.ico    /favicon.ico   200
+/favicon-32.png    /favicon-32.png   200
+/repair-favicon.svg    /repair-favicon.svg   200
+/repair-logo.svg    /repair-logo.svg   200
